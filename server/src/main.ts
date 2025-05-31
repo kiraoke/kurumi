@@ -160,6 +160,7 @@ app.get("/auth/google", async (c: Context) => {
 
 app.get("/auth/refresh", async (c: Context) => {
   const refreshToken = getCookie(c, "refreshToken");
+  console.log("refresh token:", refreshToken);
 
   if (!refreshToken) {
     return c.json({ error: "Unauthorized" }, 401);
@@ -181,6 +182,7 @@ app.get("/auth/refresh", async (c: Context) => {
     validatedToken.email,
     seedValue,
   );
+
   setCookie(c, "refreshToken", refreshTokenNew, {
     httpOnly: true,
     secure: true,
@@ -246,8 +248,6 @@ app.get("/auth/profile", async (c: Context) => {
     {
       userId: verifiedAccessToken.userId,
       email: verifiedAccessToken.email,
-      type: verifiedAccessToken.type,
-      seed: verifiedAccessToken.seed,
     },
     200,
   );
