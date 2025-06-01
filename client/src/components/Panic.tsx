@@ -6,6 +6,7 @@ export default function Panic() {
     <div className={styles.imgContainer}>
       <Image
         src="/panic.gif"
+        priority={true}
         width={500}
         height={600}
         alt="random kurumi gif, get eyes if you want to see the best girl" />

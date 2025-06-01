@@ -7,6 +7,7 @@ export default function Loading() {
     <Image
       unoptimized
       src={"/kuload.gif"}
+      priority={true}
       width={400}
       height={500}
       alt='kurumi finger spin gif' />
