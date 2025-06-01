@@ -162,8 +162,6 @@ authRoute.get("/profile", async (c: Context) => {
   try {
     const token = c.req.header("Authorization");
 
-    console.log("profile header:", token);
-
     if (!token) {
       throw new Error("Authorization header is missing", { cause: 401 });
     }
