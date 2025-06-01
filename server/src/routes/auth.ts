@@ -11,7 +11,6 @@ import {
 import {
   createAccessToken,
   createRefreshToken,
-  verifyAccessToken,
   verifyJWT,
   verifyRefreshToken,
   JwtPayloadWithUserId,
@@ -153,53 +152,6 @@ authRoute.get("/logout", async (c: Context) => {
     console.error("Error during logout:", error);
     return c.json(
       { error: "Failed to log out", message: (error as Error).message },
-      (error as Error).cause || 500,
-    );
-  }
-});
-
-authRoute.get("/profile", async (c: Context) => {
-  try {
-    const token = c.req.header("Authorization");
-
-    if (!token) {
-      throw new Error("Authorization header is missing", { cause: 401 });
-    }
-
-    const accessToken = token.replace("Bearer ", "").trim();
-
-    if (!accessToken) {
-      throw new Error("Access token is missing", { cause: 401 });
-    }
-
-    const refreshToken = getCookie(c, "refreshToken");
-    if (!refreshToken) {
-      throw new Error("Refresh token is missing", { cause: 401 });
-    }
-
-    const refreshPayload: JwtPayloadWithUserId = await verifyJWT(refreshToken);
-
-    const verifiedAccessToken: JwtPayloadWithUserId | null =
-      await verifyAccessToken(
-        accessToken,
-        refreshPayload.seed,
-      );
-
-    if (!verifiedAccessToken) {
-      throw new Error("Invalid access token", { cause: 401 });
-    }
-
-    return c.json(
-      {
-        userId: verifiedAccessToken.userId,
-        email: verifiedAccessToken.email,
-      },
-      200,
-    );
-  } catch (error) {
-    console.error("Error fetching profile:", error);
-    return c.json(
-      { error: "Failed to fetch profile", message: (error as Error).message },
       (error as Error).cause || 500,
     );
   }

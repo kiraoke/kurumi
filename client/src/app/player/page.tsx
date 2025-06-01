@@ -19,7 +19,7 @@ export default function Page() {
       return;
     }
 
-    const response = await authApi(accessToken).get("/auth/profile");
+    const response = await authApi(accessToken).get("/profile");
 
     setProfile(response.data);
   }

@@ -7,7 +7,7 @@ import Redirecter from "@/components/Redirecter";
 export default function Page() {
   return <AuthProvider>
     <Protected>
-    <Redirecter />
+      <Redirecter />
     </Protected>
   </AuthProvider>
 }
