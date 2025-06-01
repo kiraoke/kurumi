@@ -9,7 +9,7 @@ type AuthProviderProps = {
   children: React.ReactNode;
 };
 
-export default function AuthProvider(props: AuthProviderProps) {
+export default function AuthProvider({ children }: AuthProviderProps) {
   const [_, setAccessToken] = useAtom(accessTokenAtom);
   const [__, setUserLoading] = useAtom(userLoadingAtom);
   const [___, setUserPanic] = useAtom(userPanicAtom);
@@ -58,7 +58,7 @@ export default function AuthProvider(props: AuthProviderProps) {
 
   return (
     <>
-      {props.children}
+      {children}
     </>
   );
 }
