@@ -2,8 +2,8 @@
 
 import { accessTokenAtom, userLoadingAtom } from "@/state/store";
 import { useAtom } from "jotai";
-import Loading from "@/components/Loading";
 import AuthProvider from "@/components/AuthProvider";
+import Protected from "@/components/Protected";
 import { useEffect, useState } from "react";
 import { authApi } from "@/utils/fetch";
 
@@ -31,14 +31,13 @@ export default function Page() {
 
   return (
     <AuthProvider>
-      <Loading loading={loading}>
+      <Protected>
         <div>
           <h1>Welcome to the Home Page</h1>
           <p>{accessToken}</p>
           <p>{profile?.userId} {profile?.email}</p>
         </div>
-
-      </Loading>
+      </Protected>
     </AuthProvider>
   );
 }

@@ -1,39 +1,24 @@
 "use client";
 
-
-import { api } from "@/utils/fetch";
-import styles from "./page.module.css";
-import Image from "next/image";
+import { useAtom } from "jotai";
+import { accessTokenAtom, userLoadingAtom, userPanicAtom } from "@/state/store";
+import Home from "@/components/Home";
+import Panic from "@/components/Panic";
 import Loading from "@/components/Loading";
+import { useRouter } from "next/navigation";
 
-export default function Home() {
-  const login = async () => {
-    const { data } = await api.get("/auth/google/url");
-    console.log("login data", data);
-    window.location.href = data.url; // Redirect to the Google login URL
-  };
+export default function Page() {
+  const [userLoading] = useAtom(userLoadingAtom);
+  const [userPanic] = useAtom(userPanicAtom);
+  const [accessToken] = useAtom(accessTokenAtom);
 
-  return (
-    <Loading loading={false}>
-      <div className={styles.container}>
-        <div className={styles.titleContainer}>
-          <h1 className={styles.title}>Kurumi.</h1>
-          <Image
-            src="/mi.gif"
-            height={100}
-            width={100}
-            className={styles.img}
-            alt="Picture of kurumi tokisaki"
-          />
-        </div>
+  const router = useRouter();
 
-        <button className={styles.button} onClick={(event) => {
-          event.preventDefault();
-          login();
-        }}>
-          Log in
-        </button>
-      </div>
-    </Loading>
-  );
+  if (userPanic) return <Panic/>;
+
+  if (userLoading && !accessToken) return <Loading />;
+
+  if (!userLoading && accessToken) router.push("/player");
+
+  return <Home />;
 }
