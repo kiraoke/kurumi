@@ -21,6 +21,7 @@ const waifus = [
   "himeno",
   "kobeni",
   "reze",
+  "asa",
   "angel-devil",
   "rei",
   "asuka",
