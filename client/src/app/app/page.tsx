@@ -34,7 +34,7 @@ export default function Page() {
         <div>
           <h1>Welcome to the Home Page</h1>
           <p>{accessToken}</p>
-          <p>{profile?.userId} {profile?.email}</p>
+          <p>{profile?.username} {profile?.email}</p>
         </div>
       </Protected>
     </AuthProvider>

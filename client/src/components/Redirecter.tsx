@@ -6,7 +6,7 @@ export default function Redirecter() {
   const router = useRouter()
 
   useEffect(() => {
-    router.push("/player")
+    router.push("/app")
   }, [])
 
   return <div></div>
