@@ -1,8 +1,7 @@
-const animeGirls = [
+const waifus = [
   "kaguya",
   "chika",
   "hayasaka",
-  "ai",
   "miko",
   "koyasu",
   "kurumi",
@@ -12,6 +11,7 @@ const animeGirls = [
   "chisato",
   "takina",
   "mizuki",
+  "ai",
   "ruby",
   "kana",
   "akane",
@@ -21,9 +21,35 @@ const animeGirls = [
   "himeno",
   "kobeni",
   "reze",
+  "angel-devil",
   "rei",
   "asuka",
   "misato",
+  "chizuru",
+  "mami",
+  "ruka",
+  "sumire",
+  "kasumi",
+  "makoto",
+  "haru",
+  "hifumi",
+  "takemi",
+  "kurisu",
+  "mai",
+  "rem",
+  "emilia",
+  "megumin",
+  "aqua",
+  "darkness",
+  "yunyun",
+  "komi",
+  "shoko",
+  "miku",
+  "ayase",
+  "mitsuha",
+  "hori",
+  "c.c",
+  "speedwagon", // best girl
 ];
 
 const adjectives = [
@@ -67,12 +93,10 @@ const adjectives = [
 ];
 
 function username(): string {
-  const randomGirl = animeGirls[Math.floor(Math.random() * animeGirls.length)];
+  const randomWaifu = waifus[Math.floor(Math.random() * waifus.length)];
   const randomAdjective =
     adjectives[Math.floor(Math.random() * adjectives.length)];
-  return `${randomAdjective}-${randomGirl}-chan`;
+  return `${randomAdjective}-${randomWaifu}-chan`;
 }
-
-console.log("Generated username:", username());
 
 export default username;
