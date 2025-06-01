@@ -1,5 +1,5 @@
 {
-  "version": "4",
+  "version": "5",
   "specifiers": {
     "jsr:@hono/hono@^4.7.10": "4.7.10",
     "jsr:@iuioiua/redis@^1.1.8": "1.1.8",
@@ -7,6 +7,8 @@
     "jsr:@sitnik/nanoid@^5.1.5": "5.1.5",
     "jsr:@std/assert@1": "1.0.13",
     "jsr:@std/internal@^1.0.6": "1.0.6",
+    "npm:postgres@*": "3.4.7",
+    "npm:postgres@^3.4.7": "3.4.7",
     "npm:redis@*": "5.1.1_@redis+client@5.1.1",
     "npm:redis@^5.1.1": "5.1.1_@redis+client@5.1.1"
   },
@@ -67,6 +69,9 @@
     "cluster-key-slot@1.1.2": {
       "integrity": "sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA=="
     },
+    "postgres@3.4.7": {
+      "integrity": "sha512-Jtc2612XINuBjIl/QTWsV5UvE8UHuNblcO3vVADSrKsrc6RqGX6lOW1cEo3CM2v0XG4Nat8nI+YM7/f26VxXLw=="
+    },
     "redis@5.1.1_@redis+client@5.1.1": {
       "integrity": "sha512-4t6n2Q9aFqpQnqBR/g84zsXW+U0hdSzYymqoGGZk44p+kuzzHbgukjOAca+PlQ563TbXcgv1njerllYWjAWw4g==",
       "dependencies": [
@@ -85,6 +90,7 @@
       "jsr:@panva/jose@^6.0.11",
       "jsr:@sitnik/nanoid@^5.1.5",
       "jsr:@std/assert@1",
+      "npm:postgres@^3.4.7",
       "npm:redis@^5.1.1"
     ]
   }

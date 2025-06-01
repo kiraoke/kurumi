@@ -22,3 +22,5 @@ export const jwtSecret: Uint8Array<ArrayBufferLike> = new TextEncoder().encode(
 );
 
 export const redirectUrl = `${serverUrl}/auth/google`;
+
+export const postgresUrl: string = Deno.env.get("POSTGRES_URL") || "";

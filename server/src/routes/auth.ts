@@ -1,22 +1,23 @@
 import { Context, Hono } from "@hono/hono";
 import { getGoogleAuthUrl, getTokens, GoogleUser } from "../utils/google.ts";
 import {
+  clientUrl,
   googleClientId,
   googleClientSecret,
   redirectUrl,
   seed,
-  clientUrl,
-
 } from "../utils/constants.ts";
 import {
   createAccessToken,
   createRefreshToken,
+  JwtPayloadWithUserId,
   verifyJWT,
   verifyRefreshToken,
-  JwtPayloadWithUserId,
 } from "../utils/jwt.ts";
 import { deleteCookie, getCookie, setCookie } from "@hono/hono/cookie";
 import redis from "../utils/redis.ts";
+import { createUser } from "../db/ops.ts";
+import username from "../utils/names.ts";
 
 const authRoute = new Hono();
 
@@ -52,6 +53,13 @@ authRoute.get("/google", async (c: Context) => {
     if (!data || !data.id) {
       throw new Error("Failed to fetch user data from Google", { cause: 500 });
     }
+
+    await createUser({
+      email: data.email,
+      username: username(),
+      pfp: data.picture || `${clientUrl}/pfp.png`,
+      userId: data.id,
+    });
 
     const seedValue = seed();
 
