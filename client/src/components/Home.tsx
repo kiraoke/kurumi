@@ -5,7 +5,6 @@ import { api } from "@/utils/fetch";
 export default function Home() {
   const login = async () => {
     const { data } = await api.get("/auth/google/url");
-    console.log("login data", data);
     window.location.href = data.url; // Redirect to the Google login URL
   };
 

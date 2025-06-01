@@ -25,7 +25,6 @@ export default function Page() {
   }
 
   useEffect(() => {
-    console.log("Access Token:", loading, accessToken);
     fetchProfile();
   }, [accessToken, loading]);
 
