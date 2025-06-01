@@ -1,0 +1,210 @@
+import { Context, Hono } from "@hono/hono";
+import { getGoogleAuthUrl, getTokens, GoogleUser } from "../utils/google.ts";
+import {
+  googleClientId,
+  googleClientSecret,
+  redirectUrl,
+  seed,
+  clientUrl,
+
+} from "../utils/constants.ts";
+import {
+  createAccessToken,
+  createRefreshToken,
+  verifyAccessToken,
+  verifyJWT,
+  verifyRefreshToken,
+  JwtPayloadWithUserId,
+} from "../utils/jwt.ts";
+import { deleteCookie, getCookie, setCookie } from "@hono/hono/cookie";
+import redis from "../utils/redis.ts";
+
+const authRoute = new Hono();
+
+authRoute.get("/google/url", (c: Context) => {
+  return c.json({
+    url: getGoogleAuthUrl(),
+  }, 200);
+});
+
+authRoute.get("/google", async (c: Context) => {
+  const code = c.req.query("code");
+
+  try {
+    if (!code) throw new Error("Authorization code is missing", { cause: 400 });
+
+    const { id_token, access_token } = await getTokens({
+      code,
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
+      redirectUrl,
+    });
+
+    const googleUser = await fetch(
+      `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${access_token}`,
+      {
+        headers: {
+          Authorization: `Bearer ${id_token}`,
+        },
+      },
+    );
+
+    const data: GoogleUser = await googleUser.json();
+    if (!data || !data.id) {
+      throw new Error("Failed to fetch user data from Google", { cause: 500 });
+    }
+
+    const seedValue = seed();
+
+    const refreshToken = await createRefreshToken(
+      data.id,
+      data.email,
+      seedValue,
+    );
+
+    setCookie(c, "refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+
+    const accessToken = await createAccessToken(data.id, data.email, seedValue);
+
+    return c.redirect(
+      `${clientUrl}/auth/success?accessToken=${accessToken}`,
+      302,
+    );
+  } catch (error) {
+    console.error("Error during Google authentication:", error);
+    return c.json({
+      error: "Failed to authenticate with Google",
+      message: (error as Error).message,
+    }, (error as Error).cause || 500);
+  }
+});
+
+authRoute.get("/refresh", async (c: Context) => {
+  try {
+    const refreshToken = getCookie(c, "refreshToken");
+
+    if (!refreshToken) {
+      throw new Error("Refresh token is missing", {
+        cause: 401,
+      });
+    }
+
+    const validatedToken: JwtPayloadWithUserId = await verifyRefreshToken(
+      refreshToken,
+    );
+
+    if (!validatedToken) {
+      deleteCookie(c, "refreshToken");
+      return c.json({ error: "Invalid refresh token" }, 401);
+    }
+
+    deleteCookie(c, "refreshToken");
+    const seedValue = seed();
+    const refreshTokenNew: string = await createRefreshToken(
+      validatedToken.userId,
+      validatedToken.email,
+      seedValue,
+    );
+
+    setCookie(c, "refreshToken", refreshTokenNew, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+    const accessToken: string = await createAccessToken(
+      validatedToken.userId,
+      validatedToken.email,
+      seedValue,
+    );
+
+    return c.json(
+      { message: "Refresh token is valid", accessToken: accessToken },
+      200,
+    );
+  } catch (error) {
+    console.error("Error during token refresh:", error);
+    return c.json(
+      { error: "Failed to refresh token", message: (error as Error).message },
+      (error as Error).cause || 500,
+    );
+  }
+});
+
+authRoute.get("/logout", async (c: Context) => {
+  try {
+    const refreshToken = getCookie(c, "refreshToken");
+    if (refreshToken) {
+      const validatedToken: JwtPayloadWithUserId = await verifyJWT(
+        refreshToken,
+      );
+      if (!redis) throw new Error("Internal server error", { cause: 500 });
+      await redis.sendCommand(["DEl", `refresh_${validatedToken.userId}`]);
+    }
+
+    deleteCookie(c, "refreshToken");
+    return c.json({ message: "Logged out successfully" }, 200);
+  } catch (error) {
+    console.error("Error during logout:", error);
+    return c.json(
+      { error: "Failed to log out", message: (error as Error).message },
+      (error as Error).cause || 500,
+    );
+  }
+});
+
+authRoute.get("/profile", async (c: Context) => {
+  try {
+    const token = c.req.header("Authorization");
+
+    console.log("profile header:", token);
+
+    if (!token) {
+      throw new Error("Authorization header is missing", { cause: 401 });
+    }
+
+    const accessToken = token.replace("Bearer ", "").trim();
+
+    if (!accessToken) {
+      throw new Error("Access token is missing", { cause: 401 });
+    }
+
+    const refreshToken = getCookie(c, "refreshToken");
+    if (!refreshToken) {
+      throw new Error("Refresh token is missing", { cause: 401 });
+    }
+
+    const refreshPayload: JwtPayloadWithUserId = await verifyJWT(refreshToken);
+
+    const verifiedAccessToken: JwtPayloadWithUserId | null =
+      await verifyAccessToken(
+        accessToken,
+        refreshPayload.seed,
+      );
+
+    if (!verifiedAccessToken) {
+      throw new Error("Invalid access token", { cause: 401 });
+    }
+
+    return c.json(
+      {
+        userId: verifiedAccessToken.userId,
+        email: verifiedAccessToken.email,
+      },
+      200,
+    );
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    return c.json(
+      { error: "Failed to fetch profile", message: (error as Error).message },
+      (error as Error).cause || 500,
+    );
+  }
+});
+
+export default authRoute;
