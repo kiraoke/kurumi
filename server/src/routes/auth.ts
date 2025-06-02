@@ -105,11 +105,6 @@ authRoute.get("/refresh", async (c: Context) => {
       refreshToken,
     );
 
-    if (!validatedToken) {
-      deleteCookie(c, "refreshToken");
-      return c.json({ error: "Invalid refresh token" }, 401);
-    }
-
     deleteCookie(c, "refreshToken");
     const seedValue = seed();
     const refreshTokenNew: string = await createRefreshToken(
@@ -136,6 +131,7 @@ authRoute.get("/refresh", async (c: Context) => {
     );
   } catch (error) {
     console.error("Error during token refresh:", error);
+    deleteCookie(c, "refreshToken");
     return c.json(
       { error: "Failed to refresh token", message: (error as Error).message },
       (error as Error).cause || 500,
