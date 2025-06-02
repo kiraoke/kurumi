@@ -1,4 +1,4 @@
-import {getCookie} from "@hono/hono/cookie";
+import { getCookie } from "@hono/hono/cookie";
 import {
   JwtPayloadWithUserId,
   verifyAccessToken,
@@ -6,7 +6,7 @@ import {
 } from "../utils/jwt.ts";
 import { Context, Next } from "@hono/hono";
 
-async function authMiddleware (c: Context, next: Next) {
+async function authMiddleware(c: Context, next: Next) {
   try {
     const token = c.req.header("Authorization");
 
@@ -46,8 +46,7 @@ async function authMiddleware (c: Context, next: Next) {
       { error: "Authentication failed", message: (error as Error).message },
       (error as Error).cause || 500,
     );
-  } 
-};
+  }
+}
 
 export default authMiddleware;
-

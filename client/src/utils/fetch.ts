@@ -8,6 +8,42 @@ export const api = createFetchWrapper({
   credentials: 'include',
 });
 
+export const postMultipart = async <T>(token: string,
+  url: string,
+  body: FormData,
+  opts?: RequestConfig): Promise<FetchResponse<T>> => {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(`${serverUrl}${url}`, {
+        method: 'POST',
+        body,
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          ...opts?.headers,
+        },
+      });
+
+      const contentType = res.headers.get('content-type')
+      const isJson = contentType && contentType.includes('application/json')
+      const data = isJson ? await res.json() : await res.text()
+
+      return {
+        data,
+        status: res.status,
+        statusText: res.statusText,
+        headers: res.headers,
+      }
+    } catch (error) {
+      console.error('Error in postMultipart:', error);
+      if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 100)); // wait 100ms before retrying
+    }
+
+  }
+  throw new Error('Failed to post multipart data');
+}
+
 
 export const authApi = (token: string, opts?: any) => createFetchWrapper({
   baseURL: serverUrl,

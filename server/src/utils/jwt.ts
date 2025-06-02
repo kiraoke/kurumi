@@ -61,14 +61,16 @@ export async function verifyRefreshToken(
   token: string,
 ): Promise<JwtPayloadWithUserId> {
   const payload: JwtPayloadWithUserId = await verifyJWT(token).catch(() => {
-    throw new Error("Invalid refresh token, couldn't verify", { cause: 400});
+    throw new Error("Invalid refresh token, couldn't verify", { cause: 400 });
   });
 
   if (!payload) throw new Error("Invalid refresh token", { cause: 400 });
   if (!payload.userId) {
     throw new Error("Invalid refresh token, payload not found", { cause: 400 });
   }
-  if (payload.type !== "refresh") throw new Error("Invalid refresh token type", { cause: 400 });
+  if (payload.type !== "refresh") {
+    throw new Error("Invalid refresh token type", { cause: 400 });
+  }
 
   if (!redis) throw new Error("Internal server error", { cause: 500 });
 
@@ -97,7 +99,9 @@ export async function verifyAccessToken(
     throw new Error("Invalid access token, payload not found");
   }
   if (payload.type !== "access") throw new Error("Invalid access token type");
-  if (payload.seed !== refreshTokenSeed) throw new Error("Invalid access token, seed mismatch"); 
+  if (payload.seed !== refreshTokenSeed) {
+    throw new Error("Invalid access token, seed mismatch");
+  }
 
   return payload;
 }

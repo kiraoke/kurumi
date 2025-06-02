@@ -1,4 +1,4 @@
-import { redirectUrl, googleClientId } from "./constants.ts";
+import { googleClientId, redirectUrl } from "./constants.ts";
 
 export interface GoogleUser {
   id: string;
@@ -72,4 +72,3 @@ export async function getTokens({
     throw new Error(error instanceof Error ? error.message : "Unknown error");
   }
 }
-

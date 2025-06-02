@@ -34,5 +34,3 @@ async function connectToPostgresWithRetry(
 const db = await connectToPostgresWithRetry();
 
 export default db;
-
-

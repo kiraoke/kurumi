@@ -39,7 +39,7 @@
   text-decoration: underline;
 }
 
-button:hover {
+.button:hover {
   color: #f5dffd;
 }
 

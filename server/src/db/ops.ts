@@ -145,4 +145,3 @@ export async function updatePfp({ userId, pfp }: {
 
   throw new Error("Failed to update pfp after multiple attempts");
 }
-
