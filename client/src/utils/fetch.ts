@@ -59,104 +59,105 @@ export const logout = async (): Promise<void> => {
 
 export const AuthApi = {
   get: async <T>(token: string, url: string, config?: RequestConfig): Promise<FetchResponse<T>> => {
-    const api = authApi(token);
-    const response: FetchResponse<T> = await api.get(url, config);
-    if (!response.data) {
-      throw new Error(`Failed to fetch data from ${url}`);
-    }
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const api = authApi(token);
+        const response: FetchResponse<T> = await api.get(url, config);
 
-    if (response.status === 401) {
-      const accessToken = await refreshToken();
-      store.set(accessTokenAtom, accessToken);
-      const retryResponse: FetchResponse<T> = await api.get(url, config);
-      if (!retryResponse.data) {
-        throw new Error(`Failed to fetch data from ${url} after token refresh`);
+        if (response.status === 401) {
+          const accessToken = await refreshToken();
+          store.set(accessTokenAtom, accessToken);
+          const retryResponse: FetchResponse<T> = await api.get(url, config);
+          if (!retryResponse.data) {
+            throw new Error(`Failed to fetch data from ${url} after token refresh`);
+          }
+
+          return retryResponse;
+        }
+
+        if (!response.data) {
+          throw new Error(`Failed to fetch data from ${url}`);
+        }
+
+
+        return response;
+      } catch (error) {
+        console.error(`Attempt ${attempt + 1} failed:`, error);
+        // Optionally, you can add a delay before retrying
+
+        if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 100)); // wait 1 second before retrying
       }
-
-      return retryResponse;
     }
 
-    return response;
+    throw new Error('Failed to fetch data after 3 attempts');
   },
   post: async <T>(token: string, url: string, body: any, config?: RequestConfig): Promise<FetchResponse<T>> => {
-    const api = authApi(token);
-    const response: FetchResponse<T> = await api.post(url, body, config);
-    if (!response.data) {
-      throw new Error(`Failed to fetch data from ${url}`);
-    }
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const api = authApi(token);
+        const response: FetchResponse<T> = await api.post(url, body, config);
 
-    if (response.status === 401) {
-      const accessToken = await refreshToken();
-      store.set(accessTokenAtom, accessToken);
-      const retryResponse: FetchResponse<T> = await api.post(url, body, config);
-      if (!retryResponse.data) {
-        throw new Error(`Failed to fetch data from ${url} after token refresh`);
+        if (response.status === 401) {
+          const accessToken = await refreshToken();
+          store.set(accessTokenAtom, accessToken);
+          const retryResponse: FetchResponse<T> = await api.post(url, body, config);
+          if (!retryResponse.data) {
+            throw new Error(`Failed to fetch data from ${url} after token refresh`);
+          }
+
+          return retryResponse;
+        }
+
+        if (!response.data) {
+          throw new Error(`Failed to fetch data from ${url}`);
+        }
+
+        return response;
+
+      } catch (error) {
+        console.error(`Attempt ${attempt + 1} failed:`, error);
+        // Optionally, you can add a delay before retrying
+
+        if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 100)); // wait 1 second before retrying
+
       }
-
-      return retryResponse;
     }
-
-    return response;
+    throw new Error('Failed to fetch data after 3 attempts');
   },
   delete: async <T>(token: string, url: string, config?: RequestConfig): Promise<FetchResponse<T>> => {
-    const api = authApi(token);
-    const response: FetchResponse<T> = await api.delete(url, config);
-    if (!response.data) {
-      throw new Error(`Failed to fetch data from ${url}`);
-    }
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
 
-    if (response.status === 401) {
-      const accessToken = await refreshToken();
-      store.set(accessTokenAtom, accessToken);
-      const retryResponse: FetchResponse<T> = await api.delete(url, config);
-      if (!retryResponse.data) {
-        throw new Error(`Failed to fetch data from ${url} after token refresh`);
+        const api = authApi(token);
+        const response: FetchResponse<T> = await api.delete(url, config);
+
+        if (response.status === 401) {
+          const accessToken = await refreshToken();
+          store.set(accessTokenAtom, accessToken);
+          const retryResponse: FetchResponse<T> = await api.delete(url, config);
+          if (!retryResponse.data) {
+            throw new Error(`Failed to fetch data from ${url} after token refresh`);
+          }
+
+          return retryResponse;
+        }
+
+        if (!response.data) {
+          throw new Error(`Failed to fetch data from ${url}`);
+        }
+
+        return response;
+      } catch (error) {
+        console.error(`Attempt ${attempt + 1} failed:`, error);
+        // Optionally, you can add a delay before retrying
+
+        if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 100)); // wait 1 second before retrying
+
       }
 
-      return retryResponse;
     }
 
-    return response;
-  },
-  put: async <T>(token: string, url: string, body: any, config?: RequestConfig): Promise<FetchResponse<T>> => {
-    const api = authApi(token);
-    const response: FetchResponse<T> = await api.put(url, body, config);
-    if (!response.data) {
-      throw new Error(`Failed to fetch data from ${url}`);
-    }
-
-    if (response.status === 401) {
-      const accessToken = await refreshToken();
-      store.set(accessTokenAtom, accessToken);
-      const retryResponse: FetchResponse<T> = await api.put(url, body, config);
-      if (!retryResponse.data) {
-        throw new Error(`Failed to fetch data from ${url} after token refresh`);
-      }
-
-      return retryResponse;
-    }
-
-    return response;
-  },
-  patch: async <T>(token: string, url: string, body: any, config?: RequestConfig): Promise<FetchResponse<T>> => {
-    const api = authApi(token);
-    const response: FetchResponse<T> = await api.patch(url, body, config);
-    if (!response.data) {
-      throw new Error(`Failed to fetch data from ${url}`);
-    }
-
-    if (response.status === 401) {
-      const accessToken = await refreshToken();
-      store.set(accessTokenAtom, accessToken);
-      const retryResponse: FetchResponse<T> = await api.patch(url, body, config);
-      if (!retryResponse.data) {
-        throw new Error(`Failed to fetch data from ${url} after token refresh`);
-      }
-
-      return retryResponse;
-    }
-
-    return response;
+    throw new Error('Failed to fetch data after 3 attempts');
   },
 };
 

@@ -5,7 +5,7 @@ import { useAtom } from "jotai";
 import { accessTokenAtom } from "@/state/store";
 
 export default function FailPage() {
-  const [accessToken, _] = useAtom(accessTokenAtom);
+  const [accessToken] = useAtom(accessTokenAtom);
   const [data, setData] = useState<string>('');
 
 

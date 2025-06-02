@@ -1,7 +1,7 @@
 "use client"
 
-import { accessTokenAtom, userLoadingAtom, userPanicAtom } from '@/state/store';
-import { logout, refreshToken } from '@/utils/fetch';
+import { accessTokenAtom, User, userAtom, userLoadingAtom, userPanicAtom } from '@/state/store';
+import { AuthApi, logout, refreshToken } from '@/utils/fetch';
 import { useAtom } from 'jotai';
 import React, { useEffect } from 'react';
 
@@ -10,17 +10,22 @@ type AuthProviderProps = {
 };
 
 export default function AuthProvider({ children }: AuthProviderProps) {
-  const [_, setAccessToken] = useAtom(accessTokenAtom);
-  const [__, setUserLoading] = useAtom(userLoadingAtom);
-  const [___, setUserPanic] = useAtom(userPanicAtom);
+  const [, setAccessToken] = useAtom(accessTokenAtom);
+  const [, setUserLoading] = useAtom(userLoadingAtom);
+  const [, setUserPanic] = useAtom(userPanicAtom);
+  const [, setUser] = useAtom(userAtom);
 
   const fetchUser = async () => {
+    console.log("Fetching user...");
     try {
       setUserLoading(true);
       const accessToken: string = await refreshToken();
 
       setAccessToken(accessToken);
 
+      const { data: user } = await AuthApi.get<User>(accessToken, '/profile');
+
+      setUser(user);
       setUserLoading(false);
     } catch (error) {
       console.error("Failed to fetch user:", error);
@@ -28,10 +33,12 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       try {
         await logout();
         setUserLoading(false);
+        setUser(null);
         setAccessToken(null);
       } catch (e) {
         console.error("Failed to logout:", e);
         setUserLoading(false);
+        setUser(null);
         setAccessToken(null); // delete access token just in case
         setUserPanic(true);
       }
@@ -39,12 +46,17 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const refreshAccessToken = async () => {
+    console.log("Refreshing access token...");
     try {
       const accessToken: string = await refreshToken();
       setAccessToken(accessToken);
+
+      const { data: user } = await AuthApi.get<User>(accessToken, '/profile');
+      setUser(user);
     } catch (error) {
       console.error("Failed to refresh access token:", error);
       setAccessToken(null);
+      setUser(null);
       setUserPanic(true);
     }
   }
