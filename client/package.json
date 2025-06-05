@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "agora-rtc-sdk-ng": "^4.23.3",
     "jotai": "^2.12.5",
     "next": "15.3.2",
     "react": "^19.0.0",
