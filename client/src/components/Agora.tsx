@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AgoraRTC, { IAgoraRTCClient, IMicrophoneAudioTrack, IAgoraRTCRemoteUser, IRemoteAudioTrack } from 'agora-rtc-sdk-ng';
 import Conference from './Conference/Conference';
 import { useRouter } from 'next/navigation';
-
+import { useSocket } from '@/utils/socket';
 
 interface AudioTrack {
   localTrack: IMicrophoneAudioTrack | null;
@@ -16,30 +16,31 @@ export default function Agora({ children }: { children: React.ReactNode }) {
   const token = null;
 
   const roomid = "kuru";
-  const [rtcClient, setRtcClient] = useState<IAgoraRTCClient | null>();
-  const [rtcUid, setRtcUid] = useState<number>(0);
-  const [audioTrack, setAudioTrack] = useState<AudioTrack>({ localTrack: null, remoteTracks: {} });
+  const rtcClientRef = useRef<IAgoraRTCClient | null>(null);
+  const rtcUidRef = useRef<number>(0);
+  const audioTrackRef = useRef<AudioTrack>({ localTrack: null, remoteTracks: {} });
   const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
   const router = useRouter();
+  const {socket} = useSocket("http://localhost:4000");
 
   const initRtc = async (rtcClient: IAgoraRTCClient, uid: number) => {
     await rtcClient.join(appId, roomid, token, uid);
     const localTrack: IMicrophoneAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
 
-    setAudioTrack(track => ({ localTrack: localTrack, remoteTracks: track.remoteTracks }));
+    audioTrackRef.current.localTrack = localTrack;
 
     rtcClient.publish(localTrack);
   }
 
   const leaveRoom = async () => {
-    if (!audioTrack.localTrack) return;
-    if (!rtcClient) return;
+    if (!audioTrackRef.current.localTrack) return;
+    if (!rtcClientRef.current) return;
 
-    audioTrack.localTrack.stop();
-    audioTrack.localTrack.close();
+    audioTrackRef.current.localTrack.stop();
+    audioTrackRef.current.localTrack.close();
 
-    rtcClient.unpublish();
-    rtcClient.leave();
+    rtcClientRef.current.unpublish();
+    rtcClientRef.current.leave();
     router.push("/panic");
   };
 
@@ -58,21 +59,15 @@ export default function Agora({ children }: { children: React.ReactNode }) {
     console.log("audio calliope", user, mediaType);
 
     if (mediaType !== 'audio') return;
-    const audioTrack = user.audioTrack;
+    const remoteAudioTrack = user.audioTrack;
 
-    if (!audioTrack) return;
+    if (!remoteAudioTrack) return;
 
-    setAudioTrack(track => ({
-      ...track,
-      remoteTracks: {
-        ...track.remoteTracks,
-        [user.uid]: audioTrack
-      }
-    }));
+    audioTrackRef.current.remoteTracks[user.uid] = remoteAudioTrack;
 
-    console.log("Remote audio track subscribed", audioTrack);
+    console.log("Remote audio track subscribed", remoteAudioTrack);
 
-    audioTrack.play();
+    remoteAudioTrack.play();
   }
 
 
@@ -80,10 +75,8 @@ export default function Agora({ children }: { children: React.ReactNode }) {
     console.log("takodachi left", user);
     setUsers(prevUsers => prevUsers.filter(u => u.uid !== user.uid));
 
-    setAudioTrack(track => {
-      const { [user.uid]: _, ...remainingTracks } = track.remoteTracks;
-      return { ...track, remoteTracks: remainingTracks };
-    });
+    const {[user.uid]: _, ...remainingTracks} = audioTrackRef.current.remoteTracks
+    audioTrackRef.current.remoteTracks = remainingTracks;
   }
 
   useEffect(() => {
@@ -92,12 +85,14 @@ export default function Agora({ children }: { children: React.ReactNode }) {
     rtc.on("user-published", async (user, mediaType) => await handleUserPublished(user, mediaType, rtc));
     rtc.on("user-left", handleUserLeave);
     const uid = Math.floor(Math.random() * 2032);
-    setRtcUid(uid);
-    setRtcClient(rtc);
-    console.log("AgoraRTC client created with UID:", rtcUid, appId);
+
+    rtcClientRef.current = rtc;
+    rtcUidRef.current = uid;
+    console.log("AgoraRTC client created with UID:", rtcUidRef.current, appId);
 
     initRtc(rtc, uid);
   }, []);
+
 
   return <Conference
     participants={users}

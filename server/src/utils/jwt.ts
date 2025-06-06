@@ -62,7 +62,7 @@ export async function verifyRefreshToken(
 ): Promise<JwtPayloadWithUserId> {
   const payload: JwtPayloadWithUserId = await verifyJWT(token).catch(() => {
     throw new Error("Invalid refresh token, couldn't verify", { cause: 400 });
-  });
+  }) as JwtPayloadWithUserId;
 
   if (!payload) throw new Error("Invalid refresh token", { cause: 400 });
   if (!payload.userId) {
@@ -92,7 +92,7 @@ export async function verifyAccessToken(
 ): Promise<JwtPayloadWithUserId> {
   const payload: JwtPayloadWithUserId = await verifyJWT(token).catch(() => {
     throw new Error("Invalid access token, couldn't verify");
-  });
+  }) as JwtPayloadWithUserId;
 
   if (!payload) throw new Error("Invalid access token");
   if (!payload.userId) {
@@ -104,4 +104,24 @@ export async function verifyAccessToken(
   }
 
   return payload;
+}
+
+export async function verifyAccessTokenWithoutRefresh(
+  token: string,
+): Promise<JwtPayloadWithUserId | null> {
+  try {
+    const payload: JwtPayloadWithUserId = await verifyJWT(token).catch(() => {
+      throw new Error("Invalid access token, couldn't verify");
+    }) as JwtPayloadWithUserId;
+
+    if (!payload) throw new Error("Invalid access token");
+    if (!payload.userId) {
+      throw new Error("Invalid access token, payload not found");
+    }
+    if (payload.type !== "access") throw new Error("Invalid access token type");
+
+    return payload;
+  } catch (_error) {
+    return null;
+  }
 }

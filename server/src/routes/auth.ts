@@ -149,7 +149,7 @@ authRoute.get("/logout", async (c: Context) => {
     if (refreshToken) {
       const validatedToken: JwtPayloadWithUserId = await verifyJWT(
         refreshToken,
-      );
+      ) as JwtPayloadWithUserId;
       if (!redis) throw new Error("Internal server error", { cause: 500 });
       await redis.sendCommand(["DEl", `refresh_${validatedToken.userId}`]);
     }

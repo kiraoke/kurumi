@@ -25,7 +25,9 @@ async function authMiddleware(c: Context, next: Next) {
       throw new Error("Refresh token is missing", { cause: 401 });
     }
 
-    const refreshPayload: JwtPayloadWithUserId = await verifyJWT(refreshToken);
+    const refreshPayload: JwtPayloadWithUserId = await verifyJWT(
+      refreshToken,
+    ) as JwtPayloadWithUserId;
 
     const verifiedAccessToken: JwtPayloadWithUserId | null =
       await verifyAccessToken(

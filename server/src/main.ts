@@ -3,8 +3,8 @@ import authRoute from "./routes/auth.ts";
 import { port } from "./utils/constants.ts";
 import profileRoute from "./routes/profile.ts";
 import uploadRoute from "./routes/upload.ts";
-import { upgradeWebSocket } from "@hono/hono/deno";
 import corsMiddleWare from "./middlewares/corsMiddleware.ts";
+import { upgrader } from "./socket/socket.ts";
 
 const app: Hono = new Hono();
 
@@ -20,16 +20,7 @@ app.get("/", (c: Context) => {
 
 app.get(
   "/ws",
-  upgradeWebSocket((c) => {
-    return {
-      onOpen: () => console.log("Connected"),
-      onMessage: (event, ws) => {
-        console.log("Message received:", event.data);
-        ws.send(`Echo: ${event.data}`);
-      },
-      onClose: () => console.log("Disconnected"),
-    };
-  }),
+  upgrader
 );
 
 Deno.serve({ port: port }, app.fetch);
