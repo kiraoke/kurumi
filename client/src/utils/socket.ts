@@ -1,7 +1,7 @@
-import { accessTokenAtom } from '@/state/store';
-import { useAtom } from 'jotai';
-import { useRef, useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { accessTokenAtom } from "@/state/store";
+import { useAtom } from "jotai";
+import { useRef, useEffect, useState } from "react";
+import { io, Socket } from "socket.io-client";
 
 export interface User {
   user_id: string;
@@ -10,7 +10,13 @@ export interface User {
   pfp: string;
 }
 
-export function useSocket(serverUrl: string, roomId: string) {
+interface SocketProps {
+  serverUrl: string;
+  roomId: string;
+  uid?: string;
+}
+
+export function useSocket({ serverUrl, roomId, uid }: SocketProps) {
   const socketRef = useRef<Socket | null>(null);
   const [accessToken] = useAtom(accessTokenAtom);
   const [users, setUsers] = useState<User[]>([]);
@@ -31,56 +37,59 @@ export function useSocket(serverUrl: string, roomId: string) {
         reconnectionDelayMax: 100,
       });
 
-      console.log('Connecting to tako server:', accessToken, roomId);
+      console.log("Connecting to tako server:", accessToken, roomId);
 
       socketRef.current = socket;
       socket.emit("joinRoom", { roomId });
     }
 
-
-    socketRef.current?.on('connect', () => {
-      console.log('Socket connected');
+    socketRef.current?.on("connect", () => {
+      console.log("Socket connected");
       setIsConnected(true);
     });
 
-    socketRef.current?.on('disconnect', () => {
+    socketRef.current?.on("disconnect", () => {
       setIsConnected(false);
-      console.log('Socket disconnected');
+      console.log("Socket disconnected");
     });
 
-    socketRef.current?.on('userJoined', ({ user }: { user: User }) => {
-      console.log('Takodachi joineeeee:', user, usersRef.current);
+    socketRef.current?.on("userJoined", ({ user }: { user: User }) => {
+      console.log("Takodachi joineeeee:", user, usersRef.current);
       if (usersRef.current.has(user.user_id)) return; // Prevent duplicates
-      setUsers(prevUsers => [...prevUsers, user]);
+      setUsers((prevUsers) => [...prevUsers, user]);
       usersRef.current.add(user.user_id);
     });
 
-    socketRef.current?.on('prevUsers', ({ users }: { users: User[] }) => {
-      console.log('Previous takodachis:', users);
-      const newUsers = users.filter(user => !usersRef.current.has(user.user_id));
-      setUsers(prevUsers => [...prevUsers, ...newUsers]);
-      newUsers.forEach(user => usersRef.current.add(user.user_id));
+    socketRef.current?.on("prevUsers", ({ users }: { users: User[] }) => {
+      console.log("Previous takodachis:", users);
+      const newUsers = users.filter(
+        (user) => !usersRef.current.has(user.user_id)
+      );
+      setUsers((prevUsers) => [...prevUsers, ...newUsers]);
+      newUsers.forEach((user) => usersRef.current.add(user.user_id));
     });
 
-    socketRef.current?.on('userLeft', ({ userId }: { userId: string }) => {
-      console.log('Takodachi left:', userId);
-      setUsers(prevUsers => prevUsers.filter(user => user.user_id !== userId));
+    socketRef.current?.on("userLeft", ({ userId }: { userId: string }) => {
+      console.log("Takodachi left:", userId);
+      setUsers((prevUsers) =>
+        prevUsers.filter((user) => user.user_id !== userId)
+      );
       usersRef.current.delete(userId);
     });
 
     const unloadHandler = () => {
-        socketRef.current?.emit('leaveRoom', { roomId });
-        socketRef.current?.disconnect();
-    }
+      socketRef.current?.emit("leaveRoom", { roomId });
+      socketRef.current?.disconnect();
+    };
 
-    window.addEventListener('beforeunload', unloadHandler);
+    window.addEventListener("beforeunload", unloadHandler);
 
     return () => {
       if (socketRef.current) {
-        socketRef.current.off('connect');
-        socketRef.current.off('disconnect');
-        socketRef.current.off('message');
-        window.removeEventListener('beforeunload', unloadHandler);
+        socketRef.current.off("connect");
+        socketRef.current.off("disconnect");
+        socketRef.current.off("message");
+        window.removeEventListener("beforeunload", unloadHandler);
       }
     };
   }, [serverUrl, accessToken]);

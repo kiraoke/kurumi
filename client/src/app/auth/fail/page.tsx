@@ -6,24 +6,22 @@ import { accessTokenAtom } from "@/state/store";
 
 export default function FailPage() {
   const [accessToken] = useAtom(accessTokenAtom);
-  const [data, setData] = useState<string>('');
-
+  const [data, setData] = useState<string>("");
 
   useEffect(() => {
     // Simulate fetching data or processing the access token
     if (accessToken) {
       const url = "http://localhost:3000/auth/profile";
       fetch(url, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Accept': 'application/json'
-        }
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+        },
       })
-        .then(response => response.json())
-        .then(data => setData(data.email))
-        .catch(error => console.error('Error fetching data:', error));
-
+        .then((response) => response.json())
+        .then((data) => setData(data.email))
+        .catch((error) => console.error("Error fetching data:", error));
     }
   }, [accessToken]);
 
@@ -36,4 +34,4 @@ export default function FailPage() {
       <p>data: {data} </p>
     </div>
   );
-} 
+}

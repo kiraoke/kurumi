@@ -81,7 +81,7 @@
 }
 
 .pfpBox::after {
-  content: 'change pfp';
+  content: "change pfp";
   display: flex;
   justify-content: center;
   align-items: center;
@@ -99,7 +99,6 @@
 .pfpBox:hover::after {
   opacity: 0.8;
 }
-
 
 .pfp {
   border-radius: 10px;

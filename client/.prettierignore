@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+build/
+
+# Vercel
+.vercel
+
+# Environment variables
+.env*
+
+# Generated files
+*.tsbuildinfo
+next-env.d.ts
+
+# Package manager
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Public assets (optional)
+public/

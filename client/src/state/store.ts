@@ -1,4 +1,4 @@
-import {atom, createStore } from 'jotai';
+import { atom, createStore } from "jotai";
 
 export interface User {
   userId: string;

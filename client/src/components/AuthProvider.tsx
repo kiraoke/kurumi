@@ -1,9 +1,15 @@
-"use client"
+"use client";
 
-import { accessTokenAtom, User, userAtom, userLoadingAtom, userPanicAtom } from '@/state/store';
-import { AuthApi, logout, refreshToken } from '@/utils/fetch';
-import { useAtom } from 'jotai';
-import React, { useEffect } from 'react';
+import {
+  accessTokenAtom,
+  User,
+  userAtom,
+  userLoadingAtom,
+  userPanicAtom,
+} from "@/state/store";
+import { AuthApi, logout, refreshToken } from "@/utils/fetch";
+import { useAtom } from "jotai";
+import React, { useEffect } from "react";
 
 type AuthProviderProps = {
   children: React.ReactNode;
@@ -23,7 +29,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
       setAccessToken(accessToken);
 
-      const { data: user } = await AuthApi.get<User>(accessToken, '/profile');
+      const { data: user } = await AuthApi.get<User>(accessToken, "/profile");
 
       setUser(user);
       setUserLoading(false);
@@ -43,7 +49,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         setUserPanic(true);
       }
     }
-  }
+  };
 
   const refreshAccessToken = async () => {
     console.log("Refreshing access token...");
@@ -51,7 +57,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const accessToken: string = await refreshToken();
       setAccessToken(accessToken);
 
-      const { data: user } = await AuthApi.get<User>(accessToken, '/profile');
+      const { data: user } = await AuthApi.get<User>(accessToken, "/profile");
       setUser(user);
     } catch (error) {
       console.error("Failed to refresh access token:", error);
@@ -59,7 +65,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       setUser(null);
       setUserPanic(true);
     }
-  }
+  };
 
   useEffect(() => {
     fetchUser();
@@ -68,13 +74,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     return () => clearInterval(interval);
   }, []);
 
-  return (
-    <>
-      {children}
-    </>
-  );
+  return <>{children}</>;
 }
-
 
 // for refresh
 // retries 3 times

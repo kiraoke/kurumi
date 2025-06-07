@@ -18,7 +18,7 @@
   align-items: center;
 }
 
-.desc{
+.desc {
   transform: rotate(90deg);
   transform-origin: left top;
   position: absolute;
@@ -30,7 +30,7 @@
 .title {
   text-wrap: wrap;
   font-weight: 300 !important;
-  color: #F5DFDC;
+  color: #f5dfdc;
   font-size: 2rem;
   font-weight: 600;
 }

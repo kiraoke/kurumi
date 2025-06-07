@@ -1,13 +1,12 @@
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
-
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Redirecter() {
-  const router = useRouter()
+  const router = useRouter();
 
   useEffect(() => {
-    router.push("/player")
-  }, [])
+    router.push("/player");
+  }, []);
 
-  return <div></div>
+  return <div></div>;
 }

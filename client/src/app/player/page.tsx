@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
 import { userAtom, accessTokenAtom } from "@/state/store";
 import { useAtom } from "jotai";
 import AuthProvider from "@/components/AuthProvider";
 import Protected from "@/components/Protected";
-import styles from './page.module.css';
+import styles from "./page.module.css";
 import Image from "next/image";
 import { ChangeEvent, useState } from "react";
 import { postMultipart } from "@/utils/fetch";
@@ -25,34 +25,36 @@ export default function Page() {
 
     if (!accessToken) return;
 
-    const response = await postMultipart(accessToken, "/upload/image", formData);
+    const response = await postMultipart(
+      accessToken,
+      "/upload/image",
+      formData
+    );
 
     console.log("PFP upload response:", response.data);
-  }
+  };
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
+    if (file && file.type.startsWith("image/")) {
       setPfp(URL.createObjectURL(file));
       setPfpFile(file);
       uploadPfp(file);
     }
   };
 
-
   const pfpSource = pfp || "/pfp.jpg";
 
   const joinRoom = async (host?: boolean) => {
     const room = host ? user?.email : code;
     router.push(`/room/${room}`);
-  }
+  };
 
   return (
     <AuthProvider>
       <Protected>
         <div className={styles.container}>
           <main className={styles.main}>
-
             <h1 className={styles.title}>Konichiwa,</h1>
             <p className={styles.subtitle}>Edit profile</p>
 
@@ -62,27 +64,35 @@ export default function Page() {
                 <input
                   placeholder={user?.username}
                   className={styles.input}
-                  onChange={(e) => setUsername(e.target.value)} />
+                  onChange={(e) => setUsername(e.target.value)}
+                />
               </div>
 
-              <div className={styles.pfpBox} onClick={() => document.getElementById("pfpPicker")?.click()}>
+              <div
+                className={styles.pfpBox}
+                onClick={() => document.getElementById("pfpPicker")?.click()}>
                 <Image
                   className={styles.pfp}
                   src={pfpSource}
                   width={200}
                   height={200}
-                  alt="profile picture" />
+                  alt="profile picture"
+                />
                 <input
                   type="file"
                   id={"pfpPicker"}
                   accept="image/*"
                   className={styles.picker}
-                  onChange={handleImageChange} />
+                  onChange={handleImageChange}
+                />
               </div>
             </div>
 
             <button
-              disabled={(username ? username === user?.username : true) && pfpSource === "/pfp.jpg"}
+              disabled={
+                (username ? username === user?.username : true) &&
+                pfpSource === "/pfp.jpg"
+              }
               className={styles.save}>
               save
             </button>
@@ -94,7 +104,8 @@ export default function Page() {
             <input
               placeholder={"ENTER CODE TO JOIN"}
               className={styles.input}
-              onChange={(e) => setCode(e.target.value)} />
+              onChange={(e) => setCode(e.target.value)}
+            />
 
             <div className={styles.idk}>
               <button
@@ -103,9 +114,7 @@ export default function Page() {
                 onClick={() => joinRoom()}>
                 JOIN
               </button>
-              <button
-                onClick={() => joinRoom(true)}
-                className={styles.save}>
+              <button onClick={() => joinRoom(true)} className={styles.save}>
                 Host Yourself
               </button>
             </div>
@@ -117,14 +126,16 @@ export default function Page() {
               width={25}
               height={25}
               src="/icons/home.svg"
-              alt="home icon" />
+              alt="home icon"
+            />
 
             <Image
               className={styles.icon}
               width={25}
               height={25}
               src="/icons/playArrow.svg"
-              alt="home icon" />
+              alt="home icon"
+            />
           </div>
         </div>
       </Protected>

@@ -1,70 +1,74 @@
 import { accessTokenAtom, store } from "@/state/store";
-import { createFetchWrapper, FetchResponse, RequestConfig } from "./fetchwrapper"
+import {
+  createFetchWrapper,
+  FetchResponse,
+  RequestConfig,
+} from "./fetchwrapper";
 import { serverUrl } from "./constants";
 import sleep from "./sleep";
 
-
 export const api = createFetchWrapper({
   baseURL: serverUrl,
-  credentials: 'include',
+  credentials: "include",
 });
 
-export const postMultipart = async <T>(token: string,
+export const postMultipart = async <T>(
+  token: string,
   url: string,
   body: FormData,
-  opts?: RequestConfig): Promise<FetchResponse<T>> => {
+  opts?: RequestConfig
+): Promise<FetchResponse<T>> => {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await fetch(`${serverUrl}${url}`, {
-        method: 'POST',
+        method: "POST",
         body,
-        credentials: 'include',
+        credentials: "include",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
           ...opts?.headers,
         },
       });
 
-      const contentType = res.headers.get('content-type')
-      const isJson = contentType && contentType.includes('application/json')
-      const data = isJson ? await res.json() : await res.text()
+      const contentType = res.headers.get("content-type");
+      const isJson = contentType && contentType.includes("application/json");
+      const data = isJson ? await res.json() : await res.text();
 
       return {
         data,
         status: res.status,
         statusText: res.statusText,
         headers: res.headers,
-      }
+      };
     } catch (error) {
-      console.error('Error in postMultipart:', error);
-      if (attempt < 2) await sleep(100) // wait 100ms before retrying
+      console.error("Error in postMultipart:", error);
+      if (attempt < 2) await sleep(100); // wait 100ms before retrying
     }
-
   }
-  throw new Error('Failed to post multipart data');
-}
+  throw new Error("Failed to post multipart data");
+};
 
-
-export const authApi = (token: string, opts?: any) => createFetchWrapper({
-  baseURL: serverUrl,
-  credentials: 'include',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Accept': 'application/json',
-  },
-  ...opts,
-});
+export const authApi = (token: string, opts?: any) =>
+  createFetchWrapper({
+    baseURL: serverUrl,
+    credentials: "include",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
+    ...opts,
+  });
 
 export const refreshToken = async (): Promise<string> => {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const response = await api.get('/auth/refresh');
+      const response = await api.get("/auth/refresh");
 
       if (response.status === 401) break; // refresh token is probably broken, stop trying and logout
 
       if (!response?.data?.accessToken) {
-        throw new Error('Failed to refresh access token');
+        throw new Error("Failed to refresh access token");
       }
 
       return response.data.accessToken;
@@ -73,16 +77,16 @@ export const refreshToken = async (): Promise<string> => {
     }
   }
 
-  throw new Error('Failed to refresh access token after 3 attempts');
-}
+  throw new Error("Failed to refresh access token after 3 attempts");
+};
 
 export const logout = async (): Promise<void> => {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const response = await api.get('/auth/logout');
+      const response = await api.get("/auth/logout");
 
       if (response.status !== 200) {
-        throw new Error('Failed to logout');
+        throw new Error("Failed to logout");
       }
 
       return;
@@ -91,11 +95,15 @@ export const logout = async (): Promise<void> => {
     }
   }
 
-  throw new Error('Failed to logout after 3 attempts');
-}
+  throw new Error("Failed to logout after 3 attempts");
+};
 
 export const AuthApi = {
-  get: async <T>(token: string, url: string, config?: RequestConfig): Promise<FetchResponse<T>> => {
+  get: async <T>(
+    token: string,
+    url: string,
+    config?: RequestConfig
+  ): Promise<FetchResponse<T>> => {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const api = authApi(token);
@@ -106,7 +114,9 @@ export const AuthApi = {
           store.set(accessTokenAtom, accessToken);
           const retryResponse: FetchResponse<T> = await api.get(url, config);
           if (!retryResponse.data) {
-            throw new Error(`Failed to fetch data from ${url} after token refresh`);
+            throw new Error(
+              `Failed to fetch data from ${url} after token refresh`
+            );
           }
 
           return retryResponse;
@@ -116,19 +126,23 @@ export const AuthApi = {
           throw new Error(`Failed to fetch data from ${url}`);
         }
 
-
         return response;
       } catch (error) {
         console.error(`Attempt ${attempt + 1} failed:`, error);
         // Optionally, you can add a delay before retrying
 
-        if (attempt < 2) await sleep(1000) // wait 1 second before retrying
+        if (attempt < 2) await sleep(1000); // wait 1 second before retrying
       }
     }
 
-    throw new Error('Failed to fetch data after 3 attempts');
+    throw new Error("Failed to fetch data after 3 attempts");
   },
-  post: async <T>(token: string, url: string, body: any, config?: RequestConfig): Promise<FetchResponse<T>> => {
+  post: async <T>(
+    token: string,
+    url: string,
+    body: any,
+    config?: RequestConfig
+  ): Promise<FetchResponse<T>> => {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const api = authApi(token);
@@ -137,9 +151,15 @@ export const AuthApi = {
         if (response.status === 401) {
           const accessToken = await refreshToken();
           store.set(accessTokenAtom, accessToken);
-          const retryResponse: FetchResponse<T> = await api.post(url, body, config);
+          const retryResponse: FetchResponse<T> = await api.post(
+            url,
+            body,
+            config
+          );
           if (!retryResponse.data) {
-            throw new Error(`Failed to fetch data from ${url} after token refresh`);
+            throw new Error(
+              `Failed to fetch data from ${url} after token refresh`
+            );
           }
 
           return retryResponse;
@@ -150,21 +170,22 @@ export const AuthApi = {
         }
 
         return response;
-
       } catch (error) {
         console.error(`Attempt ${attempt + 1} failed:`, error);
         // Optionally, you can add a delay before retrying
 
-        if (attempt < 2) await sleep(100) // wait 1 second before retrying
-
+        if (attempt < 2) await sleep(100); // wait 1 second before retrying
       }
     }
-    throw new Error('Failed to fetch data after 3 attempts');
+    throw new Error("Failed to fetch data after 3 attempts");
   },
-  delete: async <T>(token: string, url: string, config?: RequestConfig): Promise<FetchResponse<T>> => {
+  delete: async <T>(
+    token: string,
+    url: string,
+    config?: RequestConfig
+  ): Promise<FetchResponse<T>> => {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-
         const api = authApi(token);
         const response: FetchResponse<T> = await api.delete(url, config);
 
@@ -173,7 +194,9 @@ export const AuthApi = {
           store.set(accessTokenAtom, accessToken);
           const retryResponse: FetchResponse<T> = await api.delete(url, config);
           if (!retryResponse.data) {
-            throw new Error(`Failed to fetch data from ${url} after token refresh`);
+            throw new Error(
+              `Failed to fetch data from ${url} after token refresh`
+            );
           }
 
           return retryResponse;
@@ -188,14 +211,10 @@ export const AuthApi = {
         console.error(`Attempt ${attempt + 1} failed:`, error);
         // Optionally, you can add a delay before retrying
 
-        if (attempt < 2) await sleep(100) // wait 1 second before retrying
-
+        if (attempt < 2) await sleep(100); // wait 1 second before retrying
       }
-
     }
 
-    throw new Error('Failed to fetch data after 3 attempts');
+    throw new Error("Failed to fetch data after 3 attempts");
   },
 };
-
-

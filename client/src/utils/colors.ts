@@ -1,8 +1,8 @@
 export const colors = {
   "Ash gray": "c2cfb2",
   "Space cadet": "2e294e",
-  "Carmine": "91171f",
-  "Thistle": "cebacf",
+  Carmine: "91171f",
+  Thistle: "cebacf",
   "Rich black": "07090f",
 };
 
@@ -13,5 +13,5 @@ export const kurumiColors = {
   "Orange (web)": "FAAA00",
   "English Violet": "443444",
   "Misty rose": "F5DFDC",
-  "Crimson": "E40044",
+  Crimson: "E40044",
 };

@@ -23,10 +23,12 @@ export default function Home() {
         />
       </div>
 
-      <button className={styles.button} onClick={(event) => {
-        event.preventDefault();
-        login();
-      }}>
+      <button
+        className={styles.button}
+        onClick={(event) => {
+          event.preventDefault();
+          login();
+        }}>
         Log in
       </button>
     </div>

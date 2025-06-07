@@ -11,13 +11,13 @@ export default function SuccessPage() {
   const accessToken = searchParams.get("accessToken");
   const [, setAccessToken] = useAtom(accessTokenAtom);
 
-  useEffect(() => setAccessToken(accessToken), [])
+  useEffect(() => setAccessToken(accessToken), []);
 
   return (
     <div>
       <h1>Success!</h1>
       <p>Your action was successful.</p>
-     <Link href="/auth/fail">access</Link> 
+      <Link href="/auth/fail">access</Link>
     </div>
   );
 }
