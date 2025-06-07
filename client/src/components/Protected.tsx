@@ -11,17 +11,15 @@ export default function Protected({ children }: { children: React.ReactNode }) {
   const [userPanic] = useAtom(userPanicAtom);
   const [accessToken] = useAtom(accessTokenAtom);
 
+  if (!userPanic && !userLoading && accessToken) return children;
+
   if (userPanic) {
     return <Panic />;
-  }
-
-  if (userLoading && !accessToken) {
-    return <Loading />;
   }
 
   if (!userLoading && !accessToken) {
     return <Home />;
   }
 
-  return children;
+  return <Loading />; // Fallback loading state if children are not ready
 }

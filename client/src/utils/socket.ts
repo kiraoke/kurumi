@@ -31,9 +31,12 @@ export function useSocket(serverUrl: string, roomId: string) {
         reconnectionDelayMax: 100,
       });
 
+      console.log('Connecting to tako server:', accessToken, roomId);
+
       socketRef.current = socket;
       socket.emit("joinRoom", {roomId});
     }
+
 
     socketRef.current?.on('connect', () => {
       console.log('Socket connected');

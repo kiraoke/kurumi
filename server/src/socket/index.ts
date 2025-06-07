@@ -5,7 +5,13 @@ import {
 } from "../utils/jwt.ts";
 import { getUserById, User } from "../db/ops.ts";
 
-const io = new Server();
+const io = new Server({
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true,
+  }
+});
 
 const userRoomMap = new Map<string, string>();
 
@@ -16,6 +22,8 @@ io.on("connection", async (socket: Socket) => {
     socket.disconnect();
     return;
   }
+
+  console.log("connector", socket.id);
 
   const verifiedToken: JwtPayloadWithUserId | null =
     await verifyAccessTokenWithoutRefresh(
@@ -34,6 +42,7 @@ io.on("connection", async (socket: Socket) => {
     "joinRoom",
     async ({ roomId }: { roomId: string }) => {
       if (!roomId) {
+        console.log("Room ID is required");
         socket.emit("error", {
           message: "Room ID is required",
         });
@@ -41,6 +50,7 @@ io.on("connection", async (socket: Socket) => {
       }
 
       if (userRoomMap.has(userId)) {
+        console.log(`User ${userId} already in a room`);
         socket.emit("error", {
           message: "User already in a room",
         });

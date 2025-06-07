@@ -7,7 +7,8 @@ function corsMiddleWare(c: Context, next: Next) {
   if (path === "/ws") return next();
 
   return cors({
-    origin: "*",
+    origin: "http://localhost:3000",
+    credentials: true,
   })(c, next);
 }
 
