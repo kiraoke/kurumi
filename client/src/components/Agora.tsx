@@ -23,8 +23,6 @@ export default function Agora({ roomId }: { roomId: string }) {
   const hasRunRef = useRef<boolean>(false);
 
   const initRtc = async (rtcClient: IAgoraRTCClient, uid: number) => {
-    console.log("initing kiwawawaawa", uid);
-
     await rtcClient.join(appId, roomId, token, uid);
     const localTrack: IMicrophoneAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
 
@@ -56,19 +54,17 @@ export default function Agora({ roomId }: { roomId: string }) {
   };
 
   const handleUserJoined = async (user: IAgoraRTCRemoteUser, rtc: IAgoraRTCClient) => {
-    console.log("A new takodachi", user);
+    return;
   }
 
   const handleUserPublished = async (user: IAgoraRTCRemoteUser,
     mediaType: 'audio' | 'video' | 'datachannel',
     uid: number,
     rtcClient: IAgoraRTCClient) => {
-    console.log("User published kiwawawaawa", user, user.uid, uid);
     if (!rtcClient) return;
     if (user.uid.toString() === rtcUidRef.current.toString()) return;
 
     await rtcClient.subscribe(user, mediaType);
-    console.log("audio calliope", user, mediaType);
 
     if (mediaType !== 'audio') return;
     const remoteAudioTrack = user.audioTrack;
@@ -77,8 +73,6 @@ export default function Agora({ roomId }: { roomId: string }) {
 
     audioTrackRef.current.remoteTracks[user.uid] = remoteAudioTrack;
 
-    console.log("Remote audio track subscribed", remoteAudioTrack);
-
     remoteAudioTrack.play();
   }
 
@@ -86,7 +80,6 @@ export default function Agora({ roomId }: { roomId: string }) {
     rtcClient: IAgoraRTCClient,
     uid: number,
     mediaType: 'audio' | 'video' | 'datachannel') => {
-    console.log("User unpublishooo kiwawawaawa", user, user.uid, uid);
     await rtcClient.unsubscribe(user, mediaType);
     const remoteAudioTrack = user.audioTrack;
 
@@ -96,7 +89,6 @@ export default function Agora({ roomId }: { roomId: string }) {
 
 
   const handleUserLeave = async (user: IAgoraRTCRemoteUser) => {
-    console.log("takodachi left", user);
     user.audioTrack?.stop();
 
     const { [user.uid]: _, ...remainingTracks } = audioTrackRef.current.remoteTracks
@@ -107,7 +99,6 @@ export default function Agora({ roomId }: { roomId: string }) {
     if (!hasRunRef.current) {
       hasRunRef.current = true;
       const rtc: IAgoraRTCClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
-      console.log("kiwa use", rtc)
       rtc.on("user-joined", handleUserJoined);
       rtc.on("user-published", async (user, mediaType) => await handleUserPublished(user, mediaType, uid, rtc));
       rtc.on("user-unpublished", async (user, mediaType) => await handleUserUnpublished(user, rtc, uid, mediaType));
@@ -116,7 +107,6 @@ export default function Agora({ roomId }: { roomId: string }) {
 
       rtcClientRef.current = rtc;
       rtcUidRef.current = uid;
-      console.log("AgoraRTC client created with UID:", rtcUidRef.current, appId);
 
       initRtc(rtc, uid);
 

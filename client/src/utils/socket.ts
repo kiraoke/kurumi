@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 export interface User {
-  userId: string;
+  user_id: string;
   email: string;
   username: string;
   pfp: string;
@@ -34,7 +34,7 @@ export function useSocket(serverUrl: string, roomId: string) {
       console.log('Connecting to tako server:', accessToken, roomId);
 
       socketRef.current = socket;
-      socket.emit("joinRoom", {roomId});
+      socket.emit("joinRoom", { roomId });
     }
 
 
@@ -48,38 +48,42 @@ export function useSocket(serverUrl: string, roomId: string) {
       console.log('Socket disconnected');
     });
 
-    socketRef.current?.on("tako", (message) => {
-      console.log('Takodachi message', message)
-    });
-
     socketRef.current?.on('userJoined', ({ user }: { user: User }) => {
       console.log('Takodachi joineeeee:', user, usersRef.current);
-      if (usersRef.current.has(user.userId)) return; // Prevent duplicates
+      if (usersRef.current.has(user.user_id)) return; // Prevent duplicates
       setUsers(prevUsers => [...prevUsers, user]);
-      usersRef.current.add(user.userId);
+      usersRef.current.add(user.user_id);
     });
 
-    socketRef.current?.on('prevUsers', ({users}: {users: User[]}) => {
+    socketRef.current?.on('prevUsers', ({ users }: { users: User[] }) => {
       console.log('Previous takodachis:', users);
-      const newUsers = users.filter(user => !usersRef.current.has(user.userId));
+      const newUsers = users.filter(user => !usersRef.current.has(user.user_id));
       setUsers(prevUsers => [...prevUsers, ...newUsers]);
-      newUsers.forEach(user => usersRef.current.add(user.userId));
+      newUsers.forEach(user => usersRef.current.add(user.user_id));
     });
 
     socketRef.current?.on('userLeft', ({ userId }: { userId: string }) => {
       console.log('Takodachi left:', userId);
-      setUsers(prevUsers => prevUsers.filter(user => user.userId !== userId));
+      setUsers(prevUsers => prevUsers.filter(user => user.user_id !== userId));
       usersRef.current.delete(userId);
     });
+
+    const unloadHandler = () => {
+        socketRef.current?.emit('leaveRoom', { roomId });
+        socketRef.current?.disconnect();
+    }
+
+    window.addEventListener('beforeunload', unloadHandler);
 
     return () => {
       if (socketRef.current) {
         socketRef.current.off('connect');
         socketRef.current.off('disconnect');
         socketRef.current.off('message');
+        window.removeEventListener('beforeunload', unloadHandler);
       }
     };
   }, [serverUrl, accessToken]);
 
-  return { socket: socketRef.current, isConnected: isConnected , users};
+  return { socket: socketRef.current, isConnected: isConnected, users };
 }

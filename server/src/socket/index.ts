@@ -64,7 +64,7 @@ io.on("connection", async (socket: Socket) => {
         const user: User = await getUserById(userId);
 
         socket.join(roomId);
-        socket.to(roomId).emit("userJoined", {
+        socket.broadcast.to(roomId).emit("userJoined", {
           user,
         });
 
