@@ -8,13 +8,16 @@ import styles from './page.module.css';
 import Image from "next/image";
 import { ChangeEvent, useState } from "react";
 import { postMultipart } from "@/utils/fetch";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   const [user] = useAtom(userAtom);
   const [accessToken] = useAtom(accessTokenAtom);
   const [username, setUsername] = useState<string>("");
+  const [code, setCode] = useState<string>("");
   const [pfp, setPfp] = useState<string>("");
   const [pfpFile, setPfpFile] = useState<File | null>(null);
+  const router = useRouter();
 
   const uploadPfp = async (file: File) => {
     const formData = new FormData();
@@ -38,6 +41,11 @@ export default function Page() {
 
 
   const pfpSource = pfp || "/pfp.jpg";
+
+  const joinRoom = async (host?: boolean) => {
+    const room = host ? user?.email : code;
+    router.push(`/room/${room}`);
+  }
 
   return (
     <AuthProvider>
@@ -78,6 +86,29 @@ export default function Page() {
               className={styles.save}>
               save
             </button>
+
+            <div className={styles.codeBox}>
+              <p className={styles.code}>YOUR CODE:</p>
+              <p>{user?.email}</p>
+            </div>
+            <input
+              placeholder={"ENTER CODE TO JOIN"}
+              className={styles.input}
+              onChange={(e) => setCode(e.target.value)} />
+
+            <div className={styles.idk}>
+              <button
+                disabled={!code}
+                className={styles.save}
+                onClick={() => joinRoom()}>
+                JOIN
+              </button>
+              <button
+                onClick={() => joinRoom(true)}
+                className={styles.save}>
+                Host Yourself
+              </button>
+            </div>
           </main>
 
           <div className={styles.dock}>

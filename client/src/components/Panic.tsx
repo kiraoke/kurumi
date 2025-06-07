@@ -6,6 +6,7 @@ export default function Panic() {
     <div className={styles.imgContainer}>
       <Image
         src="/panic.gif"
+        unoptimized
         priority={true}
         width={500}
         height={600}

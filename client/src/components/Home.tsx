@@ -14,6 +14,7 @@ export default function Home() {
         <h1 className={styles.title}>Kurumi.</h1>
         <Image
           priority={true}
+          unoptimized
           src="/mi.gif"
           height={100}
           width={100}

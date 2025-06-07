@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import AgoraRTC, { IAgoraRTCClient, IMicrophoneAudioTrack, IAgoraRTCRemoteUser, IRemoteAudioTrack } from 'agora-rtc-sdk-ng';
 import Conference from './Conference/Conference';
 import { useRouter } from 'next/navigation';
@@ -11,20 +11,18 @@ interface AudioTrack {
   remoteTracks: { [key: string]: IRemoteAudioTrack };
 }
 
-export default function Agora({ children }: { children: React.ReactNode }) {
+export default function Agora({ roomId }: { roomId: string }) {
   const appId: string = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
   const token = null;
 
-  const roomid = "kuru";
   const rtcClientRef = useRef<IAgoraRTCClient | null>(null);
   const rtcUidRef = useRef<number>(0);
   const audioTrackRef = useRef<AudioTrack>({ localTrack: null, remoteTracks: {} });
-  const [users, setUsers] = useState<IAgoraRTCRemoteUser[]>([]);
   const router = useRouter();
-  const {socket} = useSocket("http://localhost:4000");
+  const { socket, users } = useSocket("http://localhost:4000", roomId);
 
   const initRtc = async (rtcClient: IAgoraRTCClient, uid: number) => {
-    await rtcClient.join(appId, roomid, token, uid);
+    await rtcClient.join(appId, roomId, token, uid);
     const localTrack: IMicrophoneAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
 
     audioTrackRef.current.localTrack = localTrack;
@@ -41,12 +39,14 @@ export default function Agora({ children }: { children: React.ReactNode }) {
 
     rtcClientRef.current.unpublish();
     rtcClientRef.current.leave();
-    router.push("/panic");
+
+    socket?.disconnect();
+    console.log("leave panic tako", socket);
+    router.push("/player");
   };
 
   const handleUserJoined = async (user: IAgoraRTCRemoteUser) => {
     console.log("A new takodachi", user);
-    setUsers(prevUsers => [...prevUsers, user]);
   }
 
   const handleUserPublished = async (user: IAgoraRTCRemoteUser,
@@ -73,9 +73,8 @@ export default function Agora({ children }: { children: React.ReactNode }) {
 
   const handleUserLeave = async (user: IAgoraRTCRemoteUser) => {
     console.log("takodachi left", user);
-    setUsers(prevUsers => prevUsers.filter(u => u.uid !== user.uid));
 
-    const {[user.uid]: _, ...remainingTracks} = audioTrackRef.current.remoteTracks
+    const { [user.uid]: _, ...remainingTracks } = audioTrackRef.current.remoteTracks
     audioTrackRef.current.remoteTracks = remainingTracks;
   }
 

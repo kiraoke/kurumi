@@ -1,6 +1,7 @@
 import { accessTokenAtom, store } from "@/state/store";
 import { createFetchWrapper, FetchResponse, RequestConfig } from "./fetchwrapper"
 import { serverUrl } from "./constants";
+import sleep from "./sleep";
 
 
 export const api = createFetchWrapper({
@@ -37,7 +38,7 @@ export const postMultipart = async <T>(token: string,
       }
     } catch (error) {
       console.error('Error in postMultipart:', error);
-      if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 100)); // wait 100ms before retrying
+      if (attempt < 2) await sleep(100) // wait 100ms before retrying
     }
 
   }
@@ -68,7 +69,7 @@ export const refreshToken = async (): Promise<string> => {
 
       return response.data.accessToken;
     } catch (error) {
-      console.error(`Attempt ${attempt + 1} failed:`, error);
+      console.log(`Attempt ${attempt + 1} failed:`, error);
     }
   }
 
@@ -121,7 +122,7 @@ export const AuthApi = {
         console.error(`Attempt ${attempt + 1} failed:`, error);
         // Optionally, you can add a delay before retrying
 
-        if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 100)); // wait 1 second before retrying
+        if (attempt < 2) await sleep(1000) // wait 1 second before retrying
       }
     }
 
@@ -154,7 +155,7 @@ export const AuthApi = {
         console.error(`Attempt ${attempt + 1} failed:`, error);
         // Optionally, you can add a delay before retrying
 
-        if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 100)); // wait 1 second before retrying
+        if (attempt < 2) await sleep(100) // wait 1 second before retrying
 
       }
     }
@@ -187,7 +188,7 @@ export const AuthApi = {
         console.error(`Attempt ${attempt + 1} failed:`, error);
         // Optionally, you can add a delay before retrying
 
-        if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 100)); // wait 1 second before retrying
+        if (attempt < 2) await sleep(100) // wait 1 second before retrying
 
       }
 

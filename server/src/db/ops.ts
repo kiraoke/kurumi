@@ -10,7 +10,7 @@ export interface User {
   createdAt: Date;
 }
 
-export async function getUserById(userId: string): Promise<User | null> {
+export async function getUserById(userId: string): Promise<User> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const result = await db<User[]>`

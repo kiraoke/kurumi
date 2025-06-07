@@ -1,11 +1,11 @@
-import { IAgoraRTCRemoteUser } from 'agora-rtc-sdk-ng';
 import styles from './Conference.module.css';
 import Image from 'next/image';
+import { User } from '@/utils/socket';
 
 interface Props {
   toggleMic: () => void;
   leaveRoom: () => void;
-  participants: IAgoraRTCRemoteUser[];
+  participants: User[];
 };
 
 export default function Conference({ toggleMic, leaveRoom, participants }: Props) {
@@ -22,12 +22,12 @@ export default function Conference({ toggleMic, leaveRoom, participants }: Props
         </div>
 
         <div className={styles.part}>
-          <img src="/mi.gif" alt="profile picture" className={`${styles.avatar} ${styles.speaking}`} />
+          <img src={"/mi.gif"} alt="profile picture" className={`${styles.avatar} ${styles.speaking}`} />
         </div>
         {
           participants.map((participant, index) => (
             <div className={styles.part} key={index}>
-              <img src="/pfp.jpg" alt="profile picture" className={`${styles.avatar} ${styles.speaking}`} />
+              <img src={participant.pfp || "/pfp.jpg"} alt="profile picture" className={`${styles.avatar} ${styles.speaking}`} />
             </div>))
         }
       </div>
