@@ -127,6 +127,10 @@ export default function Agora({ roomId }: { roomId: string }) {
     }
   }, []);
 
+  useEffect(() => {
+    console.log("users tako", users)
+  }, [users]);
+
 
   return <Conference
     participants={users}

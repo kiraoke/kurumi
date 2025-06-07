@@ -53,10 +53,17 @@ export function useSocket(serverUrl: string, roomId: string) {
     });
 
     socketRef.current?.on('userJoined', ({ user }: { user: User }) => {
-      console.log('Takodachi joined:', user);
+      console.log('Takodachi joineeeee:', user, usersRef.current);
       if (usersRef.current.has(user.userId)) return; // Prevent duplicates
       setUsers(prevUsers => [...prevUsers, user]);
       usersRef.current.add(user.userId);
+    });
+
+    socketRef.current?.on('prevUsers', ({users}: {users: User[]}) => {
+      console.log('Previous takodachis:', users);
+      const newUsers = users.filter(user => !usersRef.current.has(user.userId));
+      setUsers(prevUsers => [...prevUsers, ...newUsers]);
+      newUsers.forEach(user => usersRef.current.add(user.userId));
     });
 
     socketRef.current?.on('userLeft', ({ userId }: { userId: string }) => {

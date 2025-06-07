@@ -10,10 +10,13 @@ const io = new Server({
     origin: "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
-  }
+  },
+  pingInterval: 10000,
+  pingTimeout: 30000,
 });
 
 const userRoomMap = new Map<string, string>();
+const roomUserMap = new Map<string, User[]>();
 
 io.on("connection", async (socket: Socket) => {
   const token = socket.handshake.auth.token as string | undefined;
@@ -66,6 +69,29 @@ io.on("connection", async (socket: Socket) => {
         });
 
         userRoomMap.set(userId, roomId);
+        const roomSet: User[] | undefined = roomUserMap.get(roomId);
+        console.log("roomSet", roomSet);
+
+        if (roomSet?.length) {
+          console.log("preview");
+          socket.emit("prevUsers", {
+            users: Array.from(roomSet),
+          });
+
+          let found = false;
+
+          for (let i = 0; i < roomSet.length; i++) {
+            if (roomSet[i].user_id === userId) {
+              found = true;
+              break;
+            }
+          }
+
+          if (!found) roomSet.push(user);
+        } else {
+          console.log("new room");
+          roomUserMap.set(roomId, [user]);
+        }
 
         console.log(`Takodachi with id ${userId} joined room ${roomId}`);
       } catch (error) {
@@ -78,9 +104,14 @@ io.on("connection", async (socket: Socket) => {
   );
 
   socket.on("disconnect", () => {
+    console.log("Takodachi disconnected:", userId);
     const roomId: string | undefined = userRoomMap.get(userId);
     if (roomId) socket.to(roomId).emit("userLeft", { userId });
     userRoomMap.delete(userId);
+    if (roomId && roomUserMap.get(roomId)?.length) {
+      const roomSet = [...roomUserMap.get(roomId) as User[]];
+      roomUserMap.set(roomId, roomSet.filter((u) => u.user_id !== userId));
+    }
   });
 
   socket.emit("tako", "egg tako");
