@@ -45,7 +45,7 @@ export async function createRefreshToken(
 
   if (!redis) throw new Error("Internal server error", { cause: 500 });
 
-  redis.sendCommand(["SET", `refresh_${userId}`, token]);
+  await redis.sendCommand(["SET", `refresh_${userId}`, token]);
 
   return token;
 }
