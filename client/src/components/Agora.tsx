@@ -17,6 +17,8 @@ export default function Agora({ roomId }: { roomId: string }) {
 
   const rtcClientRef = useRef<IAgoraRTCClient | null>(null);
   const rtcUidRef = useRef<number>(0);
+  if (!rtcUidRef.current) rtcUidRef.current = Math.floor(Math.random() * 2032);
+
   const audioTrackRef = useRef<AudioTrack>({ localTrack: null, remoteTracks: {} });
   const router = useRouter();
   const { socket, users } = useSocket("http://localhost:4000", roomId);
@@ -99,16 +101,15 @@ export default function Agora({ roomId }: { roomId: string }) {
     if (!hasRunRef.current) {
       hasRunRef.current = true;
       const rtc: IAgoraRTCClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+      console.log("rtc uid tako", rtcUidRef.current);
       rtc.on("user-joined", handleUserJoined);
-      rtc.on("user-published", async (user, mediaType) => await handleUserPublished(user, mediaType, uid, rtc));
-      rtc.on("user-unpublished", async (user, mediaType) => await handleUserUnpublished(user, rtc, uid, mediaType));
+      rtc.on("user-published", async (user, mediaType) => await handleUserPublished(user, mediaType, rtcUidRef.current, rtc));
+      rtc.on("user-unpublished", async (user, mediaType) => await handleUserUnpublished(user, rtc, rtcUidRef.current, mediaType));
       rtc.on("user-left", handleUserLeave);
-      const uid = Math.floor(Math.random() * 2032);
 
       rtcClientRef.current = rtc;
-      rtcUidRef.current = uid;
 
-      initRtc(rtc, uid);
+      initRtc(rtc, rtcUidRef.current);
 
       return () => {
         console.log("levaing kiwa");
