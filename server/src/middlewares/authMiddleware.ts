@@ -25,21 +25,18 @@ async function authMiddleware(c: Context, next: Next) {
       throw new Error("Refresh token is missing", { cause: 401 });
     }
 
-    const refreshPayload: JwtPayloadWithUserId = await verifyJWT(
+    const refreshPayload: JwtPayloadWithUserId = (await verifyJWT(
       refreshToken,
-    ) as JwtPayloadWithUserId;
+    )) as JwtPayloadWithUserId;
 
     const verifiedAccessToken: JwtPayloadWithUserId | null =
-      await verifyAccessToken(
-        accessToken,
-        refreshPayload.seed,
-      );
+      await verifyAccessToken(accessToken, refreshPayload.seed);
 
     if (!verifiedAccessToken) {
       throw new Error("Invalid access token", { cause: 401 });
     }
 
-    c.set("userId", verifiedAccessToken.userId);
+    c.set("user_id", verifiedAccessToken.user_id);
     c.set("email", verifiedAccessToken.email);
     await next();
   } catch (error) {

@@ -10,11 +10,11 @@ export interface User {
   createdAt: Date;
 }
 
-export async function getUserById(userId: string): Promise<User> {
+export async function getUserById(user_id: string): Promise<User> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const result = await db<User[]>`
-      SELECT * FROM users WHERE user_id = ${userId};
+      SELECT * FROM users WHERE user_id = ${user_id};
       `;
 
       return result.length > 0 ? result[0] : null;
@@ -36,27 +36,27 @@ export async function createUser({
   email,
   username,
   pfp,
-  userId,
+  user_id,
 }: {
   email: string;
   username: string;
   pfp: string;
-  userId: string;
+  user_id: string;
 }): Promise<User> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       // Check if user already exists
-      const existingUser = await getUserById(userId);
+      const existingUser = await getUserById(user_id);
       if (existingUser) {
         console.warn(
-          `User with ID ${userId} already exists. Returning existing user.`,
+          `User with ID ${user_id} already exists. Returning existing user.`,
         );
         return existingUser;
       }
 
       const result = await db<User[]>`
       INSERT INTO users (user_id, email, username, pfp)
-      VALUES (${userId}, ${email}, ${username}, ${pfp})
+      VALUES (${user_id}, ${email}, ${username}, ${pfp})
       RETURNING *;`;
 
       return result[0];
@@ -76,8 +76,11 @@ export async function createUser({
   });
 }
 
-export async function updateUsername({ userId, username }: {
-  userId: string;
+export async function updateUsername({
+  user_id,
+  username,
+}: {
+  user_id: string;
   username: string;
 }): Promise<User> {
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -85,7 +88,7 @@ export async function updateUsername({ userId, username }: {
       const result = await db<User[]>`
       UPDATE users
       SET username = ${username}
-      WHERE user_id = ${userId}
+      WHERE user_id = ${user_id}
       RETURNING *;`;
 
       if (result.length === 0) {
@@ -111,8 +114,11 @@ export async function updateUsername({ userId, username }: {
   throw new Error("Failed to update username after multiple attempts");
 }
 
-export async function updatePfp({ userId, pfp }: {
-  userId: string;
+export async function updatePfp({
+  user_id,
+  pfp,
+}: {
+  user_id: string;
   pfp: string;
 }): Promise<User> {
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -120,7 +126,7 @@ export async function updatePfp({ userId, pfp }: {
       const result = await db<User[]>`
       UPDATE users
       SET pfp = ${pfp}
-      WHERE user_id = ${userId}
+      WHERE user_id = ${user_id}
       RETURNING *;`;
 
       if (result.length === 0) {

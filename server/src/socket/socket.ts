@@ -30,7 +30,11 @@ function removeFromRoom(roomId: string, socket: WSContext<WebSocket>) {
   }
 }
 
-function broadcastToRoom(roomId: string, message: string, sender?: WSContext<WebSocket>) {
+function broadcastToRoom(
+  roomId: string,
+  message: string,
+  sender?: WSContext<WebSocket>,
+) {
   const room = rooms.get(roomId);
 
   if (room) {
@@ -74,9 +78,7 @@ async function handleMessage(
       addToRoom(roomId, socket);
       broadcastToRoom(
         roomId,
-        JSON.stringify(
-          { type: "userJoined", roomId },
-        ),
+        JSON.stringify({ type: "userJoined", roomId }),
         socket,
       );
       console.log(`Takodachi ${verifiedToken.userId} joined room ${roomId}`);
@@ -99,49 +101,43 @@ export const upgrader = upgradeWebSocket((c: Context) => {
   };
 });
 
-socketRoute.get(
-  "/",
-  async (c: Context) => {
-    const upgrade = c.req.header("upgrade");
+socketRoute.get("/", async (c: Context) => {
+  const upgrade = c.req.header("upgrade");
 
-    if (upgrade !== "websocket") {
-      return c.json({
+  if (upgrade !== "websocket") {
+    return c.json(
+      {
         error: "WebSocket upgrade required",
-      }, 400);
-    }
+      },
+      400,
+    );
+  }
 
-    const { socket, response } = Deno.upgradeWebSocket(c.req.raw);
-    const url = new URL(c.req.url);
-    const accessToken = url.searchParams.get("accessToken");
-    console.log("WebSocket connection attempt with token:", accessToken);
+  const { socket, response } = Deno.upgradeWebSocket(c.req.raw);
+  const url = new URL(c.req.url);
+  const accessToken = url.searchParams.get("accessToken");
+  console.log("WebSocket connection attempt with token:", accessToken);
 
-    if (!accessToken) {
-      return c.json(
-        { error: "Access token is required" },
-        400,
-      );
-    }
+  if (!accessToken) {
+    return c.json({ error: "Access token is required" }, 400);
+  }
 
-    const verifiedToken: JwtPayloadWithUserId | null =
-      await verifyAccessTokenWithoutRefresh(accessToken);
+  const verifiedToken: JwtPayloadWithUserId | null =
+    await verifyAccessTokenWithoutRefresh(accessToken);
 
-    if (!verifiedToken) {
-      return c.json(
-        { error: "Invalid access token" },
-        401,
-      );
-    }
+  if (!verifiedToken) {
+    return c.json({ error: "Invalid access token" }, 401);
+  }
 
-    socket.onopen = () => {
-      console.log("WebSocket connection opened");
-    };
+  socket.onopen = () => {
+    console.log("WebSocket connection opened");
+  };
 
-    socket.onclose = () => {
-      console.log("WebSocket connection closed");
-    };
+  socket.onclose = () => {
+    console.log("WebSocket connection closed");
+  };
 
-    return response;
-  },
-);
+  return response;
+});
 
 export default socketRoute;

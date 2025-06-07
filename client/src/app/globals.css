@@ -13,3 +13,8 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+.speaking img {
+  box-shadow: 8px 8px 20px -6px rgba(0, 0, 0, 0.8);
+}
+

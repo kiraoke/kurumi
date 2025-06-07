@@ -49,18 +49,18 @@ export default function Conference({ participants, audioTrack }: Props) {
             className={`${styles.avatar} ${styles.speaking}`}
           />
         </div>
-        {participants.map((participant, index) => {
-          console.log("Participant", participant.pfp);
-          return (
-            <div className={styles.part} key={index}>
-              <img
-                src={participant.pfp}
-                alt="profile picture"
-                className={`${styles.avatar} ${styles.speaking}`}
-              />
-            </div>
-          );
-        })}
+        {participants.map((participant, index) => (
+          <div
+            className={styles.part}
+            id={`part_${participant.user_id}`}
+            key={index}>
+            <img
+              src={participant.pfp}
+              alt="profile picture"
+              className={`${styles.avatar}`}
+            />
+          </div>
+        ))}
       </div>
     </div>
   );

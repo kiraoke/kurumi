@@ -27,31 +27,31 @@ export async function verifyJWT(token: string): Promise<JWTPayload> {
 }
 
 export async function createAccessToken(
-  userId: string,
+  user_id: string,
   email: string,
   seed: string,
 ): Promise<string> {
-  const payload: JWTPayload = { userId, email, seed, type: "access" };
+  const payload: JWTPayload = { user_id, email, seed, type: "access" };
   return await createJWT(payload, "15m");
 }
 
 export async function createRefreshToken(
-  userId: string,
+  user_id: string,
   email: string,
   seed: string,
 ): Promise<string> {
-  const payload: JWTPayload = { userId, email, type: "refresh", seed };
+  const payload: JWTPayload = { user_id, email, type: "refresh", seed };
   const token = await createJWT(payload, "7d");
 
   if (!redis) throw new Error("Internal server error", { cause: 500 });
 
-  await redis.sendCommand(["SET", `refresh_${userId}`, token]);
+  await redis.sendCommand(["SET", `refresh_${user_id}`, token]);
 
   return token;
 }
 
 export interface JwtPayloadWithUserId extends JWTPayload {
-  userId: string;
+  user_id: string;
   email: string;
   type: "access" | "refresh";
   seed: string;
@@ -60,12 +60,12 @@ export interface JwtPayloadWithUserId extends JWTPayload {
 export async function verifyRefreshToken(
   token: string,
 ): Promise<JwtPayloadWithUserId> {
-  const payload: JwtPayloadWithUserId = await verifyJWT(token).catch(() => {
+  const payload: JwtPayloadWithUserId = (await verifyJWT(token).catch(() => {
     throw new Error("Invalid refresh token, couldn't verify", { cause: 400 });
-  }) as JwtPayloadWithUserId;
+  })) as JwtPayloadWithUserId;
 
   if (!payload) throw new Error("Invalid refresh token", { cause: 400 });
-  if (!payload.userId) {
+  if (!payload.user_id) {
     throw new Error("Invalid refresh token, payload not found", { cause: 400 });
   }
   if (payload.type !== "refresh") {
@@ -76,7 +76,7 @@ export async function verifyRefreshToken(
 
   const storedToken = await redis.sendCommand([
     "GET",
-    `refresh_${payload.userId}`,
+    `refresh_${payload.user_id}`,
   ]);
 
   if (storedToken !== token) {
@@ -90,12 +90,12 @@ export async function verifyAccessToken(
   token: string,
   refreshTokenSeed: string,
 ): Promise<JwtPayloadWithUserId> {
-  const payload: JwtPayloadWithUserId = await verifyJWT(token).catch(() => {
+  const payload: JwtPayloadWithUserId = (await verifyJWT(token).catch(() => {
     throw new Error("Invalid access token, couldn't verify");
-  }) as JwtPayloadWithUserId;
+  })) as JwtPayloadWithUserId;
 
   if (!payload) throw new Error("Invalid access token");
-  if (!payload.userId) {
+  if (!payload.user_id) {
     throw new Error("Invalid access token, payload not found");
   }
   if (payload.type !== "access") throw new Error("Invalid access token type");
@@ -110,12 +110,12 @@ export async function verifyAccessTokenWithoutRefresh(
   token: string,
 ): Promise<JwtPayloadWithUserId | null> {
   try {
-    const payload: JwtPayloadWithUserId = await verifyJWT(token).catch(() => {
+    const payload: JwtPayloadWithUserId = (await verifyJWT(token).catch(() => {
       throw new Error("Invalid access token, couldn't verify");
-    }) as JwtPayloadWithUserId;
+    })) as JwtPayloadWithUserId;
 
     if (!payload) throw new Error("Invalid access token");
-    if (!payload.userId) {
+    if (!payload.user_id) {
       throw new Error("Invalid access token, payload not found");
     }
     if (payload.type !== "access") throw new Error("Invalid access token type");

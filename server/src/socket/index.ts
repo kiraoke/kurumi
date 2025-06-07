@@ -29,9 +29,7 @@ io.on("connection", async (socket: Socket) => {
   console.log("connector", socket.id);
 
   const verifiedToken: JwtPayloadWithUserId | null =
-    await verifyAccessTokenWithoutRefresh(
-      token,
-    );
+    await verifyAccessTokenWithoutRefresh(token);
 
   if (!verifiedToken) {
     console.error("Invalid token");
@@ -39,83 +37,83 @@ io.on("connection", async (socket: Socket) => {
     return;
   }
 
-  const userId: string = verifiedToken.userId;
+  const user_id: string = verifiedToken.user_id;
 
-  socket.on(
-    "joinRoom",
-    async ({ roomId }: { roomId: string }) => {
-      if (!roomId) {
-        console.log("Room ID is required");
-        socket.emit("error", {
-          message: "Room ID is required",
+  socket.on("joinRoom", async ({ roomId }: { roomId: string }) => {
+    if (!roomId) {
+      console.log("Room ID is required");
+      socket.emit("error", {
+        message: "Room ID is required",
+      });
+      return;
+    }
+
+    if (userRoomMap.has(user_id)) {
+      console.log(`User ${user_id} already in a room`);
+      socket.emit("error", {
+        message: "User already in a room",
+      });
+      return;
+    }
+
+    try {
+      const user: User = await getUserById(user_id);
+
+      socket.join(roomId);
+      socket.broadcast.to(roomId).emit("userJoined", {
+        user,
+      });
+
+      userRoomMap.set(user_id, roomId);
+      const roomSet: User[] | undefined = roomUserMap.get(roomId);
+      console.log("roomSet", roomSet);
+
+      if (roomSet?.length) {
+        console.log("preview");
+        socket.emit("prevUsers", {
+          users: Array.from(roomSet),
         });
-        return;
-      }
 
-      if (userRoomMap.has(userId)) {
-        console.log(`User ${userId} already in a room`);
-        socket.emit("error", {
-          message: "User already in a room",
-        });
-        return;
-      }
+        let found = false;
 
-      try {
-        const user: User = await getUserById(userId);
-
-        socket.join(roomId);
-        socket.broadcast.to(roomId).emit("userJoined", {
-          user,
-        });
-
-        userRoomMap.set(userId, roomId);
-        const roomSet: User[] | undefined = roomUserMap.get(roomId);
-        console.log("roomSet", roomSet);
-
-        if (roomSet?.length) {
-          console.log("preview");
-          socket.emit("prevUsers", {
-            users: Array.from(roomSet),
-          });
-
-          let found = false;
-
-          for (let i = 0; i < roomSet.length; i++) {
-            if (roomSet[i].user_id === userId) {
-              found = true;
-              break;
-            }
+        for (let i = 0; i < roomSet.length; i++) {
+          if (roomSet[i].user_id === user_id) {
+            found = true;
+            break;
           }
-
-          if (!found) roomSet.push(user);
-        } else {
-          console.log("new room");
-          roomUserMap.set(roomId, [user]);
         }
 
-        console.log(`Takodachi with id ${userId} joined room ${roomId}`);
-      } catch (error) {
-        console.error("Error joining room:", error);
-        socket.emit("error", {
-          message: "Failed to join room",
-        });
+        if (!found) roomSet.push(user);
+      } else {
+        console.log("new room");
+        roomUserMap.set(roomId, [user]);
       }
-    },
-  );
+
+      console.log(`Takodachi with id ${user_id} joined room ${roomId}`);
+    } catch (error) {
+      console.error("Error joining room:", error);
+      socket.emit("error", {
+        message: "Failed to join room",
+      });
+    }
+  });
 
   socket.on("disconnect", () => {
-    console.log("Takodachi disconnected:", userId);
-    const roomId: string | undefined = userRoomMap.get(userId);
-    if (roomId) socket.to(roomId).emit("userLeft", { userId });
-    userRoomMap.delete(userId);
+    console.log("Takodachi disconnected:", user_id);
+    const roomId: string | undefined = userRoomMap.get(user_id);
+    if (roomId) socket.to(roomId).emit("userLeft", { user_id });
+    userRoomMap.delete(user_id);
     if (roomId && roomUserMap.get(roomId)?.length) {
-      const roomSet = [...roomUserMap.get(roomId) as User[]];
-      roomUserMap.set(roomId, roomSet.filter((u) => u.user_id !== userId));
+      const roomSet = [...(roomUserMap.get(roomId) as User[])];
+      roomUserMap.set(
+        roomId,
+        roomSet.filter((u) => u.user_id !== user_id),
+      );
     }
   });
 
   socket.emit("tako", "egg tako");
-  console.log("User connected:", userId);
+  console.log("User connected:", user_id);
 });
 
 Deno.serve({

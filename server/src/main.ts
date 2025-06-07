@@ -18,9 +18,6 @@ app.get("/", (c: Context) => {
   return c.text("yo takodachi");
 });
 
-app.get(
-  "/ws",
-  upgrader
-);
+app.get("/ws", upgrader);
 
 Deno.serve({ port: port }, app.fetch);

@@ -14,8 +14,6 @@
     "redis": "npm:redis@^5.1.1"
   },
   "lint": {
-    "exclude": [
-      ".env"
-    ]
+    "exclude": [".env"]
   }
 }

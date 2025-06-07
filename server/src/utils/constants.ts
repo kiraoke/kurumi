@@ -2,11 +2,11 @@ import { nanoid } from "@sitnik/nanoid";
 
 export const port: number = parseInt(Deno.env.get("PORT") || "8000");
 
-export const serverUrl: string = Deno.env.get("SERVER_ROOT_URL") ||
-  `http://localhost:${port}`;
+export const serverUrl: string =
+  Deno.env.get("SERVER_ROOT_URL") || `http://localhost:${port}`;
 
-export const clientUrl: string = Deno.env.get("CLIENT_ROOT_URL") ||
-  "http://localhost:3000";
+export const clientUrl: string =
+  Deno.env.get("CLIENT_ROOT_URL") || "http://localhost:3000";
 
 export const googleClientId: string = Deno.env.get("GOOGLE_CLIENT_ID") || "";
 

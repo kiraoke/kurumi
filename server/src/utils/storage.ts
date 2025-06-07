@@ -8,10 +8,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function uploadImage(file: File): Promise<string> {
   const path = `pfp/${seed()} ${file.name}`;
-  const { error } = await supabase.storage.from("images").upload(
-    path,
-    file,
-  );
+  const { error } = await supabase.storage.from("images").upload(path, file);
 
   if (error) throw error;
 

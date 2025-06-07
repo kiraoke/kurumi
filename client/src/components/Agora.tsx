@@ -10,6 +10,9 @@ import AgoraRTC, {
 import Conference from "./Conference/Conference";
 import { useRouter } from "next/navigation";
 import { useSocket } from "@/utils/socket";
+import { AuthApi } from "@/utils/fetch";
+import { useAtom } from "jotai";
+import { accessTokenAtom } from "@/state/store";
 
 export interface AudioTrack {
   localTrack: IMicrophoneAudioTrack | null;
@@ -17,12 +20,13 @@ export interface AudioTrack {
 }
 
 export default function Agora({ roomId }: { roomId: string }) {
+  const [accessToken] = useAtom(accessTokenAtom);
+
   const appId: string = process.env.NEXT_PUBLIC_AGORA_APP_ID || "";
   const token = null;
 
   const rtcClientRef = useRef<IAgoraRTCClient | null>(null);
-  const rtcUidRef = useRef<number>(0);
-  if (!rtcUidRef.current) rtcUidRef.current = Math.floor(Math.random() * 2032);
+  const rtcUidRef = useRef<string>("");
 
   const audioTrackRef = useRef<AudioTrack>({
     localTrack: null,
@@ -37,13 +41,18 @@ export default function Agora({ roomId }: { roomId: string }) {
 
   const hasRunRef = useRef<boolean>(false);
 
-  const initRtc = async ({
-    rtcClient,
-    uid,
-  }: {
-    rtcClient: IAgoraRTCClient;
-    uid: number;
-  }) => {
+  const initRtc = async ({ rtcClient }: { rtcClient: IAgoraRTCClient }) => {
+    if (!accessToken) router.push("/panic");
+
+    const {
+      data: { user_id: uid },
+    } = await AuthApi.get<{ user_id: string }>(
+      accessToken as string,
+      "/profile/user_id"
+    );
+
+    rtcUidRef.current = uid;
+
     await rtcClient.join(appId, roomId, token, uid);
     const localTrack: IMicrophoneAudioTrack =
       await AgoraRTC.createMicrophoneAudioTrack();
@@ -76,10 +85,10 @@ export default function Agora({ roomId }: { roomId: string }) {
 
   const handleUserJoined = async ({
     user,
-    rtc,
+    rtcClient,
   }: {
     user: IAgoraRTCRemoteUser;
-    rtc: IAgoraRTCClient;
+    rtcClient: IAgoraRTCClient;
   }) => {
     return;
   };
@@ -87,16 +96,22 @@ export default function Agora({ roomId }: { roomId: string }) {
   const handleUserPublished = async ({
     user,
     mediaType,
-    uid,
     rtcClient,
   }: {
     user: IAgoraRTCRemoteUser;
     mediaType: "audio" | "video" | "datachannel";
-    uid: number;
     rtcClient: IAgoraRTCClient;
   }) => {
     if (!rtcClient) return;
-    if (user.uid.toString() === rtcUidRef.current.toString()) return;
+
+    const {
+      data: { user_id: uid },
+    } = await AuthApi.get<{ user_id: string }>(
+      accessToken as string,
+      "/profile/user_id"
+    );
+
+    if (user.uid.toString() === uid) return;
 
     await rtcClient.subscribe(user, mediaType);
 
@@ -110,11 +125,15 @@ export default function Agora({ roomId }: { roomId: string }) {
     remoteAudioTrack.play();
   };
 
-  const handleUserUnpublished = async (
-    user: IAgoraRTCRemoteUser,
-    rtcClient: IAgoraRTCClient,
-    mediaType: "audio" | "video" | "datachannel"
-  ) => {
+  const handleUserUnpublished = async ({
+    user,
+    rtcClient,
+    mediaType,
+  }: {
+    user: IAgoraRTCRemoteUser;
+    rtcClient: IAgoraRTCClient;
+    mediaType: "audio" | "video" | "datachannel";
+  }) => {
     await rtcClient.unsubscribe(user, mediaType);
     const remoteAudioTrack = user.audioTrack;
 
@@ -130,6 +149,20 @@ export default function Agora({ roomId }: { roomId: string }) {
     audioTrackRef.current.remoteTracks = remainingTracks;
   };
 
+  const handleVolumeIndicator = (
+    volumes: {
+      level: number;
+      uid: string | number;
+    }[]
+  ) => {
+    for (const volume of volumes) {
+      const diva = document.getElementById(`part_${volume.uid}`);
+
+      if (volume.level > 40) diva?.classList.add("speaking");
+      else diva?.classList.remove("speaking");
+    }
+  };
+
   useEffect(() => {
     if (!hasRunRef.current) {
       hasRunRef.current = true;
@@ -137,23 +170,39 @@ export default function Agora({ roomId }: { roomId: string }) {
         mode: "rtc",
         codec: "vp8",
       });
+
+      // @ts-ignore
+      AgoraRTC.setParameter("AUDIO_VOLUME_INDICATION_INTERVAL", 200);
+      rtc.enableAudioVolumeIndicator();
+
       console.log("rtc uid tako", rtcUidRef.current);
       rtc.on("user-joined", handleUserJoined);
       rtc.on(
         "user-published",
         async (user, mediaType) =>
-          await handleUserPublished(user, mediaType, rtcUidRef.current, rtc)
+          await handleUserPublished({
+            user,
+            rtcClient: rtc,
+            mediaType,
+          })
       );
       rtc.on(
         "user-unpublished",
         async (user, mediaType) =>
-          await handleUserUnpublished(user, rtc, mediaType)
+          await handleUserUnpublished({
+            user,
+            mediaType,
+            rtcClient: rtc,
+          })
       );
+      rtc.on("volume-indicator", handleVolumeIndicator);
       rtc.on("user-left", handleUserLeave);
 
       rtcClientRef.current = rtc;
 
-      initRtc(rtc, rtcUidRef.current);
+      initRtc({
+        rtcClient: rtc,
+      });
 
       return () => {
         console.log("levaing kiwa");

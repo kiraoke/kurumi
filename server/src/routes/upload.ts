@@ -23,18 +23,23 @@ uploadRoute.post("/image", async (c: Context) => {
 
     const url: string = await uploadImage(imageFile);
 
-    return c.json({
-      message: "Image uploaded successfully",
-      url: url,
-    }, 200);
+    return c.json(
+      {
+        message: "Image uploaded successfully",
+        url: url,
+      },
+      200,
+    );
   } catch (error) {
     console.error("Error processing image upload:", (error as Error).message);
-    return c.json({
-      error: "Failed to process image upload",
-      message: (error as Error).message,
-    }, (error as Error).cause || 500);
+    return c.json(
+      {
+        error: "Failed to process image upload",
+        message: (error as Error).message,
+      },
+      (error as Error).cause || 500,
+    );
   }
 });
-
 
 export default uploadRoute;

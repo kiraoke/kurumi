@@ -22,9 +22,12 @@ import username from "../utils/names.ts";
 const authRoute = new Hono();
 
 authRoute.get("/google/url", (c: Context) => {
-  return c.json({
-    url: getGoogleAuthUrl(),
-  }, 200);
+  return c.json(
+    {
+      url: getGoogleAuthUrl(),
+    },
+    200,
+  );
 });
 
 authRoute.get("/google", async (c: Context) => {
@@ -58,7 +61,7 @@ authRoute.get("/google", async (c: Context) => {
       email: data.email,
       username: username(),
       pfp: data.picture || `${clientUrl}/pfp.png`,
-      userId: data.id,
+      user_id: data.id,
     });
 
     const seedValue = seed();
@@ -84,10 +87,13 @@ authRoute.get("/google", async (c: Context) => {
     );
   } catch (error) {
     console.error("Error during Google authentication:", error);
-    return c.json({
-      error: "Failed to authenticate with Google",
-      message: (error as Error).message,
-    }, (error as Error).cause || 500);
+    return c.json(
+      {
+        error: "Failed to authenticate with Google",
+        message: (error as Error).message,
+      },
+      (error as Error).cause || 500,
+    );
   }
 });
 
@@ -101,9 +107,8 @@ authRoute.get("/refresh", async (c: Context) => {
       });
     }
 
-    const validatedToken: JwtPayloadWithUserId = await verifyRefreshToken(
-      refreshToken,
-    );
+    const validatedToken: JwtPayloadWithUserId =
+      await verifyRefreshToken(refreshToken);
 
     if (!validatedToken) {
       deleteCookie(c, "refreshToken");
@@ -113,7 +118,7 @@ authRoute.get("/refresh", async (c: Context) => {
     deleteCookie(c, "refreshToken");
     const seedValue = seed();
     const refreshTokenNew: string = await createRefreshToken(
-      validatedToken.userId,
+      validatedToken.user_id,
       validatedToken.email,
       seedValue,
     );
@@ -125,7 +130,7 @@ authRoute.get("/refresh", async (c: Context) => {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
     const accessToken: string = await createAccessToken(
-      validatedToken.userId,
+      validatedToken.user_id,
       validatedToken.email,
       seedValue,
     );
@@ -147,11 +152,11 @@ authRoute.get("/logout", async (c: Context) => {
   try {
     const refreshToken = getCookie(c, "refreshToken");
     if (refreshToken) {
-      const validatedToken: JwtPayloadWithUserId = await verifyJWT(
+      const validatedToken: JwtPayloadWithUserId = (await verifyJWT(
         refreshToken,
-      ) as JwtPayloadWithUserId;
+      )) as JwtPayloadWithUserId;
       if (!redis) throw new Error("Internal server error", { cause: 500 });
-      await redis.sendCommand(["DEl", `refresh_${validatedToken.userId}`]);
+      await redis.sendCommand(["DEl", `refresh_${validatedToken.user_id}`]);
     }
 
     deleteCookie(c, "refreshToken");

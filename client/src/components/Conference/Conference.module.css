@@ -27,10 +27,6 @@
   box-shadow: none;
 }
 
-.speaking {
-  box-shadow: 8px 8px 20px -6px rgba(0, 0, 0, 0.8);
-}
-
 .buttContainer {
   display: flex;
   align-items: center;

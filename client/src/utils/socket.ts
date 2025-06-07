@@ -40,7 +40,7 @@ export function useSocket({ serverUrl, roomId, uid }: SocketProps) {
       console.log("Connecting to tako server:", accessToken, roomId);
 
       socketRef.current = socket;
-      socket.emit("joinRoom", { roomId });
+      socket.emit("joinRoom", { roomId, uid });
     }
 
     socketRef.current?.on("connect", () => {
@@ -69,12 +69,12 @@ export function useSocket({ serverUrl, roomId, uid }: SocketProps) {
       newUsers.forEach((user) => usersRef.current.add(user.user_id));
     });
 
-    socketRef.current?.on("userLeft", ({ userId }: { userId: string }) => {
-      console.log("Takodachi left:", userId);
+    socketRef.current?.on("userLeft", ({ user_id}: { user_id: string }) => {
+      console.log("Takodachi left:", user_id);
       setUsers((prevUsers) =>
-        prevUsers.filter((user) => user.user_id !== userId)
+        prevUsers.filter((user) => user.user_id !== user_id)
       );
-      usersRef.current.delete(userId);
+      usersRef.current.delete(user_id);
     });
 
     const unloadHandler = () => {

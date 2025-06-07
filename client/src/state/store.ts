@@ -1,7 +1,7 @@
 import { atom, createStore } from "jotai";
 
 export interface User {
-  userId: string;
+  user_id: string;
   email: string;
   username: string;
   pfp: string;
