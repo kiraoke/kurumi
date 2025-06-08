@@ -10,6 +10,7 @@
     "@sitnik/nanoid": "jsr:@sitnik/nanoid@^5.1.5",
     "@std/assert": "jsr:@std/assert@1",
     "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.49.9",
+    "fuse.js": "npm:fuse.js@^7.1.0",
     "postgres": "npm:postgres@^3.4.7",
     "redis": "npm:redis@^5.1.1"
   },

@@ -1,6 +1,6 @@
 import AuthProvider from "@/components/AuthProvider";
 import Protected from "@/components/Protected";
-import Agora from "@/components/Agora";
+import Agora from "@/components/Agora/Agora";
 
 export default async function Page({ params }: { params: { roomId: string } }) {
   const { roomId } = await params;

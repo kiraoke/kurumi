@@ -3,7 +3,7 @@
 import styles from "./Conference.module.css";
 import Image from "next/image";
 import { User } from "@/utils/socket";
-import { AudioTrack } from "../Agora";
+import { AudioTrack } from "../Agora/Agora";
 import { useState } from "react";
 
 interface Props {

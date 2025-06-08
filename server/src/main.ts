@@ -10,14 +10,14 @@ import musicRoute from "./routes/music.ts";
 
 const app: Hono = new Hono();
 
+app.use("*", corsMiddleWare);
 app.use(
   "/static/*",
   serveStatic({
     root: "./public",
-    rewriteRequestPath: (path) => path.replace(/^\/static/, '')
+    rewriteRequestPath: (path) => path.replace(/^\/static/, ""),
   }),
 );
-app.use("*", corsMiddleWare);
 
 app.route("/auth", authRoute);
 app.route("/profile", profileRoute);

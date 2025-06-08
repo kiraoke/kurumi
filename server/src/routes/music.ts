@@ -1,6 +1,16 @@
 import { Hono } from "@hono/hono";
+import Fuse from "npm:fuse.js";
 
 const musicRoute = new Hono();
+const musicFiles: Deno.DirEntry[] = [...Deno.readDirSync("./public/music")];
+
+const fuse: Fuse<Deno.DirEntry> = new Fuse(musicFiles, {
+  keys: ["name"],
+  isCaseSensitive: false,
+  includeScore: true,
+  shouldSort: true,
+  findAllMatches: true,
+});
 
 musicRoute.get("/", (c) => {
   const search: string | undefined = c.req.query("search");
@@ -15,7 +25,8 @@ musicRoute.get("/", (c) => {
 
   return c.json(
     {
-      search,
+      query: search,
+      results: fuse.search(search)
     },
     200,
   );

@@ -10,6 +10,8 @@
     "npm:@supabase/supabase-js@2": "2.49.9",
     "npm:@supabase/supabase-js@^2.49.9": "2.49.9",
     "npm:@types/node@*": "22.14.0",
+    "npm:fuse.js@*": "7.1.0",
+    "npm:fuse.js@^7.1.0": "7.1.0",
     "npm:postgres@*": "3.4.7",
     "npm:postgres@^3.4.7": "3.4.7",
     "npm:redis@^5.1.1": "5.1.1_@redis+client@5.1.1"
@@ -136,6 +138,9 @@
     "cluster-key-slot@1.1.2": {
       "integrity": "sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA=="
     },
+    "fuse.js@7.1.0": {
+      "integrity": "sha512-trLf4SzuuUxfusZADLINj+dE8clK1frKdmqiJNb1Es75fmI5oY6X2mxLVUciLLjxqw/xr72Dhy+lER6dGd02FQ=="
+    },
     "postgres@3.4.7": {
       "integrity": "sha512-Jtc2612XINuBjIl/QTWsV5UvE8UHuNblcO3vVADSrKsrc6RqGX6lOW1cEo3CM2v0XG4Nat8nI+YM7/f26VxXLw=="
     },
@@ -245,6 +250,7 @@
       "jsr:@sitnik/nanoid@^5.1.5",
       "jsr:@std/assert@1",
       "npm:@supabase/supabase-js@^2.49.9",
+      "npm:fuse.js@^7.1.0",
       "npm:postgres@^3.4.7",
       "npm:redis@^5.1.1"
     ]

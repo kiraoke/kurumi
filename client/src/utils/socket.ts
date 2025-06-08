@@ -13,10 +13,9 @@ export interface User {
 interface SocketProps {
   serverUrl: string;
   roomId: string;
-  uid?: string;
 }
 
-export function useSocket({ serverUrl, roomId, uid }: SocketProps) {
+export function useSocket({ serverUrl, roomId }: SocketProps) {
   const socketRef = useRef<Socket | null>(null);
   const [accessToken] = useAtom(accessTokenAtom);
   const [users, setUsers] = useState<User[]>([]);
@@ -40,7 +39,7 @@ export function useSocket({ serverUrl, roomId, uid }: SocketProps) {
       console.log("Connecting to tako server:", accessToken, roomId);
 
       socketRef.current = socket;
-      socket.emit("joinRoom", { roomId, uid });
+      socket.emit("joinRoom", { roomId });
     }
 
     socketRef.current?.on("connect", () => {
@@ -69,7 +68,7 @@ export function useSocket({ serverUrl, roomId, uid }: SocketProps) {
       newUsers.forEach((user) => usersRef.current.add(user.user_id));
     });
 
-    socketRef.current?.on("userLeft", ({ user_id}: { user_id: string }) => {
+    socketRef.current?.on("userLeft", ({ user_id }: { user_id: string }) => {
       console.log("Takodachi left:", user_id);
       setUsers((prevUsers) =>
         prevUsers.filter((user) => user.user_id !== user_id)
