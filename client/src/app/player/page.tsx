@@ -2,8 +2,8 @@
 
 import { userAtom, accessTokenAtom } from "@/state/store";
 import { useAtom } from "jotai";
-import AuthProvider from "@/components/AuthProvider";
-import Protected from "@/components/Protected";
+import AuthProvider from "@/components/AuthProvider/AuthProvider";
+import Protected from "@/components/Protected/Protected";
 import styles from "./page.module.css";
 import Image from "next/image";
 import { ChangeEvent, useState } from "react";

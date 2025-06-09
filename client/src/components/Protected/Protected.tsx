@@ -2,9 +2,9 @@
 
 import { useAtom } from "jotai";
 import { accessTokenAtom, userLoadingAtom, userPanicAtom } from "@/state/store";
-import Loading from "./Loading";
-import Panic from "./Panic";
-import Home from "./Home";
+import Loading from "@/components/Loading/Loading";
+import Panic from "@/components/Panic/Panic";
+import Home from "@/components/Home/Home";
 
 export default function Protected({ children }: { children: React.ReactNode }) {
   const [userLoading] = useAtom(userLoadingAtom);
