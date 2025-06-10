@@ -30,11 +30,12 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       setAccessToken(accessToken);
 
       const { data: user } = await AuthApi.get<User>(accessToken, "/profile");
+      console.log("User fetched: tako", user);
 
       setUser(user);
       setUserLoading(false);
     } catch (error) {
-      console.error("Failed to fetch user:", error);
+      console.log("Failed to fetch user tako:", error);
       // logout
       try {
         await logout();

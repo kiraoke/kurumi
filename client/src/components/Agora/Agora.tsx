@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import AgoraRTC, {
   IAgoraRTCClient,
   IBufferSourceAudioTrack,
   IMicrophoneAudioTrack,
   IRemoteAudioTrack,
 } from "agora-rtc-sdk-ng";
-import Conference from "../Conference/ConferenceTest";
+import Conference from "../Conference/Conference";
 import { useRouter } from "next/navigation";
-import { useSocket } from "@/utils/socket";
 import { AuthApi } from "@/utils/fetch";
 import { useAtom } from "jotai";
 import { accessTokenAtom, userAtom } from "@/state/store";
@@ -30,6 +29,10 @@ export interface AudioTrack {
 export default function Agora({ roomId }: { roomId: string }) {
   const [accessToken] = useAtom(accessTokenAtom);
   const [user] = useAtom(userAtom);
+  const memoizedUser = useMemo(
+    () => user,
+    [user ? JSON.stringify(user) : null]
+  );
   const [isHost, setIsHost] = useState<boolean>(false);
 
   const appId: string = process.env.NEXT_PUBLIC_AGORA_APP_ID || "";
@@ -38,11 +41,11 @@ export default function Agora({ roomId }: { roomId: string }) {
   const rtcClientRef = useRef<IAgoraRTCClient | null>(null);
 
   useEffect(() => {
-    if (user) {
-      setIsHost(user.email === decodeURIComponent(roomId)); // it fixes @ being %40 due to url encoding
-      console.log("is tako", user.email === decodeURIComponent(roomId));
+    if (memoizedUser) {
+      setIsHost(memoizedUser.email === decodeURIComponent(roomId)); // it fixes @ being %40 due to url encoding
+      console.log("is tako", memoizedUser.email === decodeURIComponent(roomId));
     }
-  }, [user]);
+  }, [memoizedUser]);
 
   const audioTrackRef = useRef<AudioTrack>({
     localTrack: null,
@@ -50,22 +53,12 @@ export default function Agora({ roomId }: { roomId: string }) {
   });
 
   const router = useRouter();
-  const { socket, users } = useSocket({
-    serverUrl: "http://localhost:4000",
-    roomId,
-  });
 
   const hasRunRef = useRef<boolean>(false);
 
   const initRtc = async ({ rtcClient }: { rtcClient: IAgoraRTCClient }) => {
     if (!accessToken) router.push("/panic");
-    const musicTrack = await AgoraRTC.createBufferSourceAudioTrack({
-      source: "http://localhost:8000/static/music/Suzume.flac",
-    });
-
-    audioTrackRef.current.musicTrack = musicTrack;
-
-    console.log("tako create suzume succcess");
+    console.log("init rtc tako user", user, accessToken);
 
     const {
       data: { user_id: uid },
@@ -79,11 +72,9 @@ export default function Agora({ roomId }: { roomId: string }) {
     const localTrack: IMicrophoneAudioTrack =
       await AgoraRTC.createMicrophoneAudioTrack();
 
-    musicTrack.startProcessAudioBuffer();
     audioTrackRef.current.localTrack = localTrack;
-    musicTrack.play();
 
-    await rtcClient.publish([localTrack, musicTrack]);
+    await rtcClient.publish(localTrack);
 
     console.log("tako publish kira suzume succcess");
     // if there are any existing remote tracks, stop them
@@ -92,6 +83,21 @@ export default function Agora({ roomId }: { roomId: string }) {
       remoteAudioTrack.stop();
       delete audioTrackRef.current.remoteTracks[remoteUser];
     }
+
+    // subscribe to existing users
+    rtcClient.remoteUsers.forEach(async (user) => {
+      if (user.uid.toString() === uid) return;
+
+      await rtcClient.subscribe(user, "audio");
+
+      const remoteAudioTrack = user.audioTrack;
+
+      if (!remoteAudioTrack) return;
+
+      audioTrackRef.current.remoteTracks[user.uid] = remoteAudioTrack;
+
+      remoteAudioTrack.play();
+    });
   };
 
   const leaveRoom = async (notPush?: boolean) => {
@@ -104,8 +110,8 @@ export default function Agora({ roomId }: { roomId: string }) {
     rtcClientRef.current.unpublish();
     rtcClientRef.current.leave();
 
-    socket?.disconnect();
-    console.log("leave panic tako", socket);
+    // socket?.disconnect();
+    // console.log("leave panic tako", socket);
     if (!notPush) router.push("/player");
   };
 
@@ -165,9 +171,12 @@ export default function Agora({ roomId }: { roomId: string }) {
     }
   }, []);
 
-  useEffect(() => {
-    console.log("users tako", users);
-  }, [users]);
-
-  return <Conference participants={users} audioTrack={audioTrackRef.current} />;
+  return (
+    <Conference
+      rtc={rtcClientRef.current}
+      audioTrack={audioTrackRef}
+      roomId={roomId}
+      isHost={isHost}
+    />
+  );
 }

@@ -17,6 +17,16 @@ const io = new Server({
 
 const userRoomMap = new Map<string, string>();
 const roomUserMap = new Map<string, User[]>();
+const roomTrackMap = new Map<
+  string,
+  {
+    track: string;
+    duration: number;
+    lastTimestamp: number;
+    paused: boolean;
+    seeked: number;
+  }
+>();
 
 io.on("connection", async (socket: Socket) => {
   const token = socket.handshake.auth.token as string | undefined;
@@ -74,6 +84,19 @@ io.on("connection", async (socket: Socket) => {
           users: Array.from(roomSet),
         });
 
+        const trackData = roomTrackMap.get(roomId);
+        const distance = Math.floor(
+          (Date.now() - (trackData?.lastTimestamp || 0)) / 1000,
+        );
+
+        socket.emit("prevTrack", {
+          track: trackData?.track,
+          duration: trackData?.duration,
+          progress: trackData?.paused
+            ? trackData.seeked
+            : (trackData?.seeked || 0) + distance,
+        });
+
         let found = false;
 
         for (let i = 0; i < roomSet.length; i++) {
@@ -97,6 +120,93 @@ io.on("connection", async (socket: Socket) => {
       });
     }
   });
+
+  socket.on(
+    "pushTrack",
+    ({
+      roomId,
+      track,
+      duration,
+    }: {
+      roomId: string;
+      track: string;
+      duration: number;
+    }) => {
+      roomTrackMap.set(roomId, {
+        track,
+        duration,
+        lastTimestamp: Date.now(),
+        paused: false,
+        seeked: 0,
+      });
+
+      socket.broadcast.to(roomId).emit("trackPushed", {
+        track,
+        duration,
+        user_id,
+      });
+    },
+  );
+
+  socket.on(
+    "pauseTrack",
+    ({
+      roomId,
+      track,
+      timestamp,
+      duration,
+    }: {
+      roomId: string;
+      track: string;
+      timestamp: number;
+      duration: number;
+    }) => {
+      roomTrackMap.set(roomId, {
+        track,
+        duration,
+        lastTimestamp: Date.now(),
+        paused: true,
+        seeked: timestamp,
+      });
+
+      socket.broadcast.to(roomId).emit("trackPaused", {
+        track,
+        timestamp,
+        duration,
+        user_id,
+      });
+    },
+  );
+
+  socket.on(
+    "resumeTrack",
+    ({
+      roomId,
+      track,
+      timestamp,
+      duration,
+    }: {
+      roomId: string;
+      track: string;
+      timestamp: number;
+      duration: number;
+    }) => {
+      roomTrackMap.set(roomId, {
+        track,
+        duration,
+        lastTimestamp: Date.now(),
+        paused: false,
+        seeked: timestamp,
+      });
+
+      socket.broadcast.to(roomId).emit("trackResumed", {
+        track,
+        timestamp,
+        duration,
+        user_id,
+      });
+    },
+  );
 
   socket.on("disconnect", () => {
     console.log("Takodachi disconnected:", user_id);

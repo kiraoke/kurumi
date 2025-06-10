@@ -2,7 +2,6 @@ import { IAgoraRTCClient, IAgoraRTCRemoteUser } from "agora-rtc-sdk-ng";
 import { AudioTrack } from "./Agora";
 import { AuthApi } from "@/utils/fetch";
 import React from "react";
-import styles from "@/components/Conference/Wavebar.module.css";
 
 export const handleUserJoined = async ({
   user,
@@ -91,7 +90,7 @@ export const handleVolumeIndicator = (
   for (const volume of volumes) {
     const diva = document.querySelector(`#part_${volume.uid} .bars`);
 
-    if (volume.level > 40) diva?.classList.add("active");
+    if (volume.level > 55) diva?.classList.add("active");
     else diva?.classList.remove("active");
   }
 };
