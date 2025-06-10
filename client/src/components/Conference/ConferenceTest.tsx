@@ -3,14 +3,14 @@
 import styles from "./ConferenceTest.module.css";
 import { AudioTrack } from "../Agora/Agora";
 import { useState } from "react";
-import { IAgoraRTCRemoteUser } from "agora-rtc-sdk-ng";
 import useDebounce from "@/utils/debounce";
 import { api } from "@/utils/fetch";
 import { truncate } from "@/utils/truncate";
 import Wavebar from "./Wavebar";
+import { User } from "@/utils/socket";
 
 interface Props {
-  participants: IAgoraRTCRemoteUser[];
+  participants: User[];
   audioTrack?: AudioTrack;
 }
 
@@ -56,25 +56,6 @@ export default function Conference({ participants, audioTrack }: Props) {
   return (
     <div className={styles.container}>
       <div className={styles.sidebar}>
-        {/*<div className={styles.buttContainer}>
-          <button className={styles.button} onClick={toggleMic}>
-            <Image
-              src={`/icons/${micMuted ? "micoff" : "mic"}.svg`}
-              width={25}
-              height={25}
-              alt="mic icon"
-            />
-          </button>
-          <button className={styles.button}>
-            <Image
-              src={"/icons/leave.svg"}
-              width={25}
-              height={25}
-              alt="mic icon"
-            />
-          </button>
-        </div>*/}
-
         <div className={styles.logo}>Kurumi.</div>
 
         <div className={styles.searchContainer}>
@@ -131,13 +112,18 @@ export default function Conference({ participants, audioTrack }: Props) {
         </div>
 
         <div className={styles.participantsContainer}>
-          <div className={styles.part}>
-            <img src={"/pfp.jpg"} />
-            <div className={styles.partBox}>
-              <p>daring-megumin-chan</p>
-              <Wavebar active />
+          {participants.map((participant, i) => (
+            <div
+              className={styles.part}
+              key={i}
+              id={`part_${participant.user_id}`}>
+              <img src={participant.pfp} />
+              <div className={styles.partBox}>
+                <p>{participant.username}</p>
+                <Wavebar />
+              </div>
             </div>
-          </div>
+          ))}
         </div>
         <div className={styles.actionContainer}>
           <button className={styles.button} onClick={toggleMic}>

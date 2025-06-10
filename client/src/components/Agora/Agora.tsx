@@ -7,7 +7,7 @@ import AgoraRTC, {
   IMicrophoneAudioTrack,
   IRemoteAudioTrack,
 } from "agora-rtc-sdk-ng";
-import Conference from "../Conference/Conference";
+import Conference from "../Conference/ConferenceTest";
 import { useRouter } from "next/navigation";
 import { useSocket } from "@/utils/socket";
 import { AuthApi } from "@/utils/fetch";

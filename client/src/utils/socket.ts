@@ -68,7 +68,7 @@ export function useSocket({ serverUrl, roomId }: SocketProps) {
       newUsers.forEach((user) => usersRef.current.add(user.user_id));
     });
 
-    socketRef.current?.on("userLeft", ({ user_id }: { user_id: string }) => {
+    socketRef.current?.on("userLeft", ({ user_id}: { user_id: string }) => {
       console.log("Takodachi left:", user_id);
       setUsers((prevUsers) =>
         prevUsers.filter((user) => user.user_id !== user_id)

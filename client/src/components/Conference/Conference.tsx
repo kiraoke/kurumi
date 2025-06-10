@@ -2,12 +2,11 @@
 
 import styles from "./Conference.module.css";
 import Image from "next/image";
-import { User } from "@/utils/socket";
 import { AudioTrack } from "../Agora/Agora";
 import { useState } from "react";
 
 interface Props {
-  participants: User[];
+  participants: SpeakingUser[];
   audioTrack?: AudioTrack;
 }
 

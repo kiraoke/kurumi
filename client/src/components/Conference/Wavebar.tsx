@@ -1,13 +1,12 @@
 "use client";
 
-import styles from "./Wavebar.module.css";
-
-export default function Wavebar({ active }: { active?: boolean } = {}) {
+// its styles are in global.css
+export default function Wavebar() {
   return (
     <>
-      <div className={`${styles.bars} ${active ? styles.active : ""}`}>
+      <div className={`bars`}>
         {[...Array(20)].map((_, i) => (
-          <span key={i} className={styles.bar} />
+          <span key={i} className={"bar"} />
         ))}
       </div>
     </>
