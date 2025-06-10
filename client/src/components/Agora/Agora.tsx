@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AgoraRTC, {
   IAgoraRTCClient,
+  IBufferSourceAudioTrack,
   IMicrophoneAudioTrack,
   IRemoteAudioTrack,
 } from "agora-rtc-sdk-ng";
@@ -11,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { useSocket } from "@/utils/socket";
 import { AuthApi } from "@/utils/fetch";
 import { useAtom } from "jotai";
-import { accessTokenAtom } from "@/state/store";
+import { accessTokenAtom, userAtom } from "@/state/store";
 import {
   handleUserLeave,
   handleUserJoined,
@@ -23,15 +24,25 @@ import {
 export interface AudioTrack {
   localTrack: IMicrophoneAudioTrack | null;
   remoteTracks: { [key: string]: IRemoteAudioTrack };
+  musicTrack?: IBufferSourceAudioTrack | undefined;
 }
 
 export default function Agora({ roomId }: { roomId: string }) {
   const [accessToken] = useAtom(accessTokenAtom);
+  const [user] = useAtom(userAtom);
+  const [isHost, setIsHost] = useState<boolean>(false);
 
   const appId: string = process.env.NEXT_PUBLIC_AGORA_APP_ID || "";
   const token = null;
 
   const rtcClientRef = useRef<IAgoraRTCClient | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      setIsHost(user.email === decodeURIComponent(roomId)); // it fixes @ being %40 due to url encoding
+      console.log("is tako", user.email === decodeURIComponent(roomId));
+    }
+  }, [user]);
 
   const audioTrackRef = useRef<AudioTrack>({
     localTrack: null,
@@ -52,6 +63,8 @@ export default function Agora({ roomId }: { roomId: string }) {
       source: "http://localhost:8000/static/music/Suzume.flac",
     });
 
+    audioTrackRef.current.musicTrack = musicTrack;
+
     console.log("tako create suzume succcess");
 
     const {
@@ -68,6 +81,7 @@ export default function Agora({ roomId }: { roomId: string }) {
 
     musicTrack.startProcessAudioBuffer();
     audioTrackRef.current.localTrack = localTrack;
+    musicTrack.play();
 
     await rtcClient.publish([localTrack, musicTrack]);
 

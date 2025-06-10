@@ -26,7 +26,10 @@ musicRoute.get("/", (c) => {
   return c.json(
     {
       query: search,
-      results: fuse.search(search)
+      results: fuse.search(search).map((result) => ({
+        ...result,
+        item: { name: result.item.name },
+      })),
     },
     200,
   );

@@ -16,6 +16,8 @@ export default function Conference({ participants, audioTrack }: Props) {
 
   const toggleMic = () => {
     audioTrack?.localTrack?.setMuted(!micMuted);
+    if (!micMuted) audioTrack?.musicTrack?.pauseProcessAudioBuffer();
+    else audioTrack?.musicTrack?.resumeProcessAudioBuffer();
 
     setMicMuted(!micMuted);
   };
