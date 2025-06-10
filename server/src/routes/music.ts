@@ -1,16 +1,34 @@
 import { Hono } from "@hono/hono";
-import Fuse from "npm:fuse.js";
+import Fuse, { FuseIndex } from "npm:fuse.js";
 
 const musicRoute = new Hono();
-const musicFiles: Deno.DirEntry[] = [...Deno.readDirSync("./public/music")];
+const meta: string = await Deno.readTextFile("./public/meta.json");
 
-const fuse: Fuse<Deno.DirEntry> = new Fuse(musicFiles, {
-  keys: ["name"],
-  isCaseSensitive: false,
-  includeScore: true,
-  shouldSort: true,
-  findAllMatches: true,
-});
+const musicFiles = Object.entries(JSON.parse(meta)).map(([key, value]) => ({
+  name: key,
+  duration: value,
+})) as MusicFile[];
+
+interface MusicFile {
+  name: string;
+  duration: number;
+}
+
+const musicIndex = JSON.parse(Deno.readTextFileSync("./musicIndex.json"));
+
+const fuseIndex: FuseIndex<MusicFile> = Fuse.parseIndex(musicIndex);
+
+const fuse: Fuse<MusicFile> = new Fuse(
+  musicFiles,
+  {
+    keys: ["name"],
+    isCaseSensitive: false,
+    includeScore: true,
+    shouldSort: true,
+    findAllMatches: true,
+  },
+  fuseIndex,
+);
 
 musicRoute.get("/", (c) => {
   const search: string | undefined = c.req.query("search");
@@ -26,10 +44,7 @@ musicRoute.get("/", (c) => {
   return c.json(
     {
       query: search,
-      results: fuse.search(search).map((result) => ({
-        ...result,
-        item: { name: result.item.name },
-      })),
+      results: fuse.search(search),
     },
     200,
   );
