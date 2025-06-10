@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import db from "./db.ts";
 
 export interface User {
@@ -17,7 +15,9 @@ export async function getUserById(user_id: string): Promise<User> {
       SELECT * FROM users WHERE user_id = ${user_id};
       `;
 
-      return result.length > 0 ? result[0] : null;
+      if (!result.length) throw new Error("User not found", { cause: 404 });
+
+      return result[0];
     } catch (error) {
       console.error(
         `Attempt ${attempt + 1} failed to get user by ID:`,

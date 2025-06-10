@@ -1,4 +1,4 @@
-import postgres from "npm:postgres";
+import postgres from "https://deno.land/x/postgresjs/mod.js";
 import { postgresUrl } from "../utils/constants.ts";
 
 if (!postgresUrl) {
