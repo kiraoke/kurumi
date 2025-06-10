@@ -170,7 +170,6 @@ export function useSocket({ serverUrl, roomId, isHost }: SocketProps) {
     );
 
     const unloadHandler = () => {
-      socketRef.current?.emit("leaveRoom", { roomId });
       socketRef.current?.disconnect();
     };
 
