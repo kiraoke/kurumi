@@ -22,7 +22,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   const [, setUser] = useAtom(userAtom);
 
   const fetchUser = async () => {
-    console.log("Fetching user...");
     try {
       setUserLoading(true);
       const accessToken: string = await refreshToken();
@@ -30,7 +29,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       setAccessToken(accessToken);
 
       const { data: user } = await AuthApi.get<User>(accessToken, "/profile");
-      console.log("User fetched: tako", user);
 
       setUser(user);
       setUserLoading(false);

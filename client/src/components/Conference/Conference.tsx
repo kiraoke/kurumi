@@ -33,12 +33,6 @@ export interface SearchResponse {
   results: SearchResult[];
 }
 
-export interface MusicTrack {
-  name: string;
-  cover: string;
-  duration: number;
-}
-
 export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
   const [micMuted, setMicMuted] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
@@ -56,7 +50,7 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
     setSeekTime,
     setMusicRecord,
   } = useSocket({
-    serverUrl: socketUrl,
+    socketUrl,
     roomId,
     isHost,
   });
@@ -111,7 +105,6 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
     trackName: string;
     duration: number;
   }) => {
-    console.log("tako play music", trackName);
     const musicTrack = await AgoraRTC.createBufferSourceAudioTrack({
       source: `${serverUrl}/static/music/${encodeURIComponent(trackName)}`,
     });
@@ -119,13 +112,9 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
 
     await rtc?.unpublish(audioTrack?.current?.musicTrack);
 
-    console.log("tako unpublish music track");
-
     if (audioTrack?.current) {
       audioTrack.current.musicTrack = musicTrack;
     }
-
-    console.log("tako create music track", musicTrack);
 
     musicTrack.startProcessAudioBuffer();
     musicTrack.play();
@@ -135,8 +124,6 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
       duration: duration,
     });
 
-    console.log("tako play music track");
-
     await rtc?.publish(musicTrack);
     socket?.emit("pushTrack", {
       roomId,
@@ -144,7 +131,6 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
       duration: duration,
     });
 
-    console.log("tako publish music track success");
     setPlaying(true);
     setSeekTime(0);
   };

@@ -43,7 +43,6 @@ export default function Agora({ roomId }: { roomId: string }) {
   useEffect(() => {
     if (memoizedUser) {
       setIsHost(memoizedUser.email === decodeURIComponent(roomId)); // it fixes @ being %40 due to url encoding
-      console.log("is tako", memoizedUser.email === decodeURIComponent(roomId));
     }
   }, [memoizedUser]);
 
@@ -58,7 +57,6 @@ export default function Agora({ roomId }: { roomId: string }) {
 
   const initRtc = async ({ rtcClient }: { rtcClient: IAgoraRTCClient }) => {
     if (!accessToken) router.push("/panic");
-    console.log("init rtc tako user", user, accessToken);
 
     const {
       data: { user_id: uid },
@@ -76,7 +74,6 @@ export default function Agora({ roomId }: { roomId: string }) {
 
     await rtcClient.publish(localTrack);
 
-    console.log("tako publish kira suzume succcess");
     // if there are any existing remote tracks, stop them
     for (const remoteUser in audioTrackRef.current.remoteTracks) {
       const remoteAudioTrack = audioTrackRef.current.remoteTracks[remoteUser];
@@ -99,7 +96,6 @@ export default function Agora({ roomId }: { roomId: string }) {
       remoteAudioTrack.play();
     });
   };
-
 
   useEffect(() => {
     if (!hasRunRef.current) {
@@ -149,11 +145,6 @@ export default function Agora({ roomId }: { roomId: string }) {
       initRtc({
         rtcClient: rtc,
       });
-
-      return () => {
-        console.log("levaing kiwa");
-        rtc.unpublish();
-      };
     }
   }, []);
 

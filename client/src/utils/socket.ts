@@ -2,6 +2,7 @@ import { accessTokenAtom } from "@/state/store";
 import { useAtom } from "jotai";
 import { useRef, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import { serverUrl } from "@/utils/constants";
 
 export interface User {
   user_id: string;
@@ -11,7 +12,7 @@ export interface User {
 }
 
 interface SocketProps {
-  serverUrl: string;
+  socketUrl: string;
   roomId: string;
   isHost: boolean;
 }
@@ -22,7 +23,7 @@ export interface MusicTrack {
   duration: number;
 }
 
-export function useSocket({ serverUrl, roomId, isHost }: SocketProps) {
+export function useSocket({ socketUrl, roomId, isHost }: SocketProps) {
   const socketRef = useRef<Socket | null>(null);
   const [accessToken] = useAtom(accessTokenAtom);
   const [users, setUsers] = useState<User[]>([]);
@@ -38,15 +39,13 @@ export function useSocket({ serverUrl, roomId, isHost }: SocketProps) {
     if (!accessToken) loadingRef.current = true;
 
     if (accessToken && !socketRef.current) {
-      const socket: Socket = io(serverUrl, {
+      const socket: Socket = io(socketUrl, {
         auth: { token: accessToken },
         reconnection: true,
         reconnectionAttempts: 4,
         reconnectionDelay: 50,
         reconnectionDelayMax: 100,
       });
-
-      console.log("Connecting to tako server:", accessToken, roomId);
 
       socketRef.current = socket;
       socket.emit("joinRoom", { roomId });
@@ -63,14 +62,12 @@ export function useSocket({ serverUrl, roomId, isHost }: SocketProps) {
     });
 
     socketRef.current?.on("userJoined", ({ user }: { user: User }) => {
-      console.log("Takodachi joineeeee:", user, usersRef.current);
       if (usersRef.current.has(user.user_id)) return; // Prevent duplicates
       setUsers((prevUsers) => [...prevUsers, user]);
       usersRef.current.add(user.user_id);
     });
 
     socketRef.current?.on("prevUsers", ({ users }: { users: User[] }) => {
-      console.log("Previous takodachis:", users);
       const newUsers = users.filter(
         (user) => !usersRef.current.has(user.user_id)
       );
@@ -79,7 +76,6 @@ export function useSocket({ serverUrl, roomId, isHost }: SocketProps) {
     });
 
     socketRef.current?.on("userLeft", ({ user_id }: { user_id: string }) => {
-      console.log("Takodachi left:", user_id);
       setUsers((prevUsers) =>
         prevUsers.filter((user) => user.user_id !== user_id)
       );
@@ -91,7 +87,6 @@ export function useSocket({ serverUrl, roomId, isHost }: SocketProps) {
       ({
         track,
         duration,
-        user_id,
       }: {
         track: string;
         duration: number;
@@ -113,9 +108,6 @@ export function useSocket({ serverUrl, roomId, isHost }: SocketProps) {
     socketRef.current?.on(
       "trackPaused",
       ({
-        track,
-        duration,
-        user_id,
         timestamp,
       }: {
         track: string;
@@ -132,9 +124,6 @@ export function useSocket({ serverUrl, roomId, isHost }: SocketProps) {
     socketRef.current?.on(
       "trackResumed",
       ({
-        track,
-        duration,
-        user_id,
         timestamp,
       }: {
         track: string;
@@ -190,7 +179,7 @@ export function useSocket({ serverUrl, roomId, isHost }: SocketProps) {
         window.removeEventListener("beforeunload", unloadHandler);
       }
     };
-  }, [serverUrl, accessToken]);
+  }, [socketUrl, accessToken]);
 
   useEffect(() => {
     if (!playing) return;

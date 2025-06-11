@@ -16,7 +16,7 @@ export default function Page() {
   const [username, setUsername] = useState<string>("");
   const [code, setCode] = useState<string>("");
   const [pfp, setPfp] = useState<string>("");
-  const [pfpFile, setPfpFile] = useState<File | null>(null);
+  const [_, setPfpFile] = useState<File | null>(null);
   const router = useRouter();
 
   const uploadPfp = async (file: File) => {
@@ -30,8 +30,6 @@ export default function Page() {
       "/upload/image",
       formData
     );
-
-    console.log("PFP upload response:", response.data);
   };
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -47,7 +45,7 @@ export default function Page() {
 
   const joinRoom = async (host?: boolean) => {
     const room = host ? user?.email : code;
-    router.push(`/room/${room}`);
+    router.push(`/room/${encodeURIComponent(room ? room : "")}`);
   };
 
   return (
