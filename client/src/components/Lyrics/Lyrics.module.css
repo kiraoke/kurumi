@@ -1,0 +1,20 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  font-size: 18px;
+  line-height: 1.5;
+  width: 50%;
+  max-width: 400px;
+  padding: 20px;
+  color: #d5d5d5;
+  background: #363636;
+}
+
+.not {
+  font-size: 32px;
+  color: gray;
+  font-weight: 800;
+  text-align: center;
+}

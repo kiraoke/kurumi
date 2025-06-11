@@ -9,6 +9,7 @@ import { api } from "@/utils/fetch";
 import { truncate } from "@/utils/truncate";
 import Wavebar from "./Wavebar";
 import { useSocket } from "@/utils/socket";
+import Lyrics from "../Lyrics/Lyrics";
 
 interface Props {
   audioTrack?: React.RefObject<AudioTrack>;
@@ -123,7 +124,7 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
     musicTrack.startProcessAudioBuffer();
     musicTrack.play();
     setMusicRecord({
-      name: truncate(trackName, 50),
+      name: trackName,
       cover: `http://localhost:8000/static/covers/${encodeURIComponent(trackName)}.png`,
       duration: duration,
     });
@@ -194,7 +195,9 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
             />
             <div className={styles.nameContainer}>
               <p className={styles.songName}>
-                {musicRecord ? musicRecord.name : "No track playing"}
+                {musicRecord
+                  ? truncate(musicRecord.name, 50)
+                  : "No track playing"}
               </p>
               <input
                 className={styles.seekbar}
@@ -243,6 +246,8 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
           </button>
         </div>
       </div>
+
+      <Lyrics track={musicRecord?.name || ""} />
     </div>
   );
 }

@@ -14,13 +14,21 @@ interface MusicFile {
   duration: number;
 }
 
-const fuse: Fuse<MusicFile> = new Fuse(musicFiles, {
-  keys: ["name"],
-  isCaseSensitive: false,
-  includeScore: true,
-  shouldSort: true,
-  findAllMatches: true,
-});
+const musicIndex = JSON.parse(Deno.readTextFileSync("./musicIndex.json"));
+
+const fuseIndex: FuseIndex<MusicFile> = Fuse.parseIndex(musicIndex);
+
+const fuse: Fuse<MusicFile> = new Fuse(
+  musicFiles,
+  {
+    keys: ["name"],
+    isCaseSensitive: false,
+    includeScore: true,
+    shouldSort: true,
+    findAllMatches: true,
+  },
+  fuseIndex,
+);
 
 musicRoute.get("/", (c) => {
   const search: string | undefined = c.req.query("search");

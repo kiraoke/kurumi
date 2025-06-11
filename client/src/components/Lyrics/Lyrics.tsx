@@ -1,44 +1,38 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/utils/fetch";
-import { Lrc, LrcLine, useRecoverAutoScrollImmediately } from "react-lrc";
+import styles from "./Lyrics.module.css";
 
-export default function Lyrics() {
+export default function Lyrics({ track }: { track: string }) {
   const [lrc, setLrc] = useState<string>("");
-  const { signal, recoverAutoScrollImmediately } =
-    useRecoverAutoScrollImmediately();
 
   const fetch = async () => {
     const { data } = (await api.get<{ lrc: string }>(
-      `/static/lyrics/${encodeURIComponent("Blue - Yung Kai.flac")}.lrc`
+      `/static/lyrics/${encodeURIComponent(track)}.lrc`
     )) as any;
 
-    console.log("data", data);
+    if (data.split(" ")[0] === "404") {
+      setLrc("");
+      return;
+    }
+
     setLrc(data);
   };
 
-  const lineRenderer = useCallback(
-    ({ active, line: { content } }: { active: boolean; line: LrcLine }) => (
-      <div style={{ background: "wheat", color: "blue" }}>{content}</div>
-    ),
-    []
-  );
-
   useEffect(() => {
     fetch();
-  }, []);
+  }, [track]);
 
   return (
-    <div>
-      <Lrc
-        lrc={lrc}
-        lineRenderer={lineRenderer}
-        currentMillisecond={34000}
-        verticalSpace
-        recoverAutoScrollSingal={signal}
-        recoverAutoScrollInterval={1000}
-      />
+    <div className={styles.container}>
+      {!lrc && <p className={styles.not}>Not found :(</p>}
+      {lrc?.split("\n").map((lr, i) => (
+        <div key={i}>
+          <p>{lr}</p>
+          <br />
+        </div>
+      ))}
     </div>
   );
 }
