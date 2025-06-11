@@ -147,6 +147,7 @@
   cursor: pointer;
   overflow: hidden;
   width: 100%;
+  pointer-events: none;
 }
 
 .seekbar::-ms-fill-lower {

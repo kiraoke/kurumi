@@ -117,24 +117,6 @@ export default function Page() {
               </button>
             </div>
           </main>
-
-          <div className={styles.dock}>
-            <Image
-              className={styles.icon}
-              width={25}
-              height={25}
-              src="/icons/home.svg"
-              alt="home icon"
-            />
-
-            <Image
-              className={styles.icon}
-              width={25}
-              height={25}
-              src="/icons/playArrow.svg"
-              alt="home icon"
-            />
-          </div>
         </div>
       </Protected>
     </AuthProvider>

@@ -14,7 +14,6 @@
   top: 50%;
   left: -10px;
   display: flex;
-  min-height: 5.5rem;
   flex-direction: column;
   justify-content: space-between;
   background: #292e4e;

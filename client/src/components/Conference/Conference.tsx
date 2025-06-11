@@ -141,6 +141,8 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
 
     audioTrack.current.localTrack.stop();
     audioTrack.current.localTrack.close();
+    audioTrack.current.musicTrack?.stop();
+    audioTrack.current.musicTrack?.close();
 
     rtc.unpublish();
     rtc.leave();
