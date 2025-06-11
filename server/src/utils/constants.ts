@@ -24,3 +24,7 @@ export const jwtSecret: Uint8Array<ArrayBufferLike> = new TextEncoder().encode(
 export const redirectUrl = `${serverUrl}/auth/google`;
 
 export const postgresUrl: string = Deno.env.get("POSTGRES_URL") || "";
+
+export const redisHost: string = Deno.env.get("REDIS_HOST") || "localhost";
+
+export const redisPort: number = parseInt(Deno.env.get("REDIS_PORT") || "6379", 10);

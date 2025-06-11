@@ -46,12 +46,16 @@ export async function createUser({
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       // Check if user already exists
-      const existingUser = await getUserById(user_id);
-      if (existingUser) {
-        console.warn(
-          `User with ID ${user_id} already exists. Returning existing user.`,
-        );
-        return existingUser;
+      try {
+        const existingUser = await getUserById(user_id);
+        if (existingUser) {
+          console.warn(
+            `User with ID ${user_id} already exists. Returning existing user.`,
+          );
+          return existingUser;
+        }
+      } catch (error) {
+        console.log("err", error);
       }
 
       const result = await db<User[]>`

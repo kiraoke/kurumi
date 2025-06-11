@@ -57,10 +57,12 @@ authRoute.get("/google", async (c: Context) => {
       throw new Error("Failed to fetch user data from Google", { cause: 500 });
     }
 
+    const rand = Math.floor(Math.random() * 7) + 1;
+
     await createUser({
       email: data.email,
       username: username(),
-      pfp: data.picture || `${clientUrl}/pfp.png`,
+      pfp: `${clientUrl}/pfp/pfp${rand}.jpg`,
       user_id: data.id,
     });
 

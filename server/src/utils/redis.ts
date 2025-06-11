@@ -1,4 +1,5 @@
 import { RedisClient } from "@iuioiua/redis";
+import { redisHost, redisPort } from "./constants.ts";
 
 let redis: RedisClient | null = null;
 
@@ -8,7 +9,10 @@ async function connectToRedisWithRetry(
 ): Promise<RedisClient | null> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const redisConn: Deno.TcpConn = await Deno.connect({ port: 6379 });
+      const redisConn: Deno.TcpConn = await Deno.connect({
+        port: redisPort,
+        hostname: redisHost,
+      });
       const redisClient: RedisClient = new RedisClient(redisConn);
       console.log(`✅ Redis connected on attempt ${attempt}`);
       return redisClient;
