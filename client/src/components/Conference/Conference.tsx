@@ -10,6 +10,10 @@ import { truncate } from "@/utils/truncate";
 import Wavebar from "./Wavebar";
 import { useSocket } from "@/utils/socket";
 import Lyrics from "../Lyrics/Lyrics";
+import { useAtom } from "jotai";
+import { userAtom } from "@/state/store";
+import { useRouter } from "next/navigation";
+import { serverUrl, socketUrl } from "@/utils/constants";
 
 interface Props {
   audioTrack?: React.RefObject<AudioTrack>;
@@ -39,6 +43,8 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
   const [micMuted, setMicMuted] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [user] = useAtom(userAtom);
+  const router = useRouter();
 
   const {
     socket,
@@ -50,7 +56,7 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
     setSeekTime,
     setMusicRecord,
   } = useSocket({
-    serverUrl: "http://localhost:4000",
+    serverUrl: socketUrl,
     roomId,
     isHost,
   });
@@ -107,7 +113,7 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
   }) => {
     console.log("tako play music", trackName);
     const musicTrack = await AgoraRTC.createBufferSourceAudioTrack({
-      source: `http://localhost:8000/static/music/${encodeURIComponent(trackName)}`,
+      source: `${serverUrl}/static/music/${encodeURIComponent(trackName)}`,
     });
     audioTrack?.current?.musicTrack?.stop();
 
@@ -125,7 +131,7 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
     musicTrack.play();
     setMusicRecord({
       name: trackName,
-      cover: `http://localhost:8000/static/covers/${encodeURIComponent(trackName)}.png`,
+      cover: `${serverUrl}/static/covers/${encodeURIComponent(trackName)}.png`,
       duration: duration,
     });
 
@@ -141,6 +147,20 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
     console.log("tako publish music track success");
     setPlaying(true);
     setSeekTime(0);
+  };
+
+  const leaveRoom = async () => {
+    if (!audioTrack?.current.localTrack) return;
+    if (!rtc) return;
+
+    audioTrack.current.localTrack.stop();
+    audioTrack.current.localTrack.close();
+
+    rtc.unpublish();
+    rtc.leave();
+
+    socket?.disconnect();
+    router.push("/player");
   };
 
   return (
@@ -221,6 +241,12 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
         </div>
 
         <div className={styles.participantsContainer}>
+          <div className={styles.part}>
+            <img src={user?.pfp} />
+            <div className={styles.partBox}>
+              <p>You.</p>
+            </div>
+          </div>
           {users.map((participant, i) => (
             <div
               className={styles.part}
@@ -241,7 +267,7 @@ export default function Conference({ audioTrack, rtc, roomId, isHost }: Props) {
               alt="mic icon"
             />
           </button>
-          <button className={styles.button}>
+          <button className={styles.button} onClick={leaveRoom}>
             <img src={"/icons/leave.svg"} alt="mic icon" />
           </button>
         </div>

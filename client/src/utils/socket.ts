@@ -101,7 +101,7 @@ export function useSocket({ serverUrl, roomId, isHost }: SocketProps) {
 
         setMusicRecord({
           name: track,
-          cover: `http://localhost:8000/static/covers/${encodeURIComponent(track)}.png`,
+          cover: `${serverUrl}/static/covers/${encodeURIComponent(track)}.png`,
           duration: duration,
         });
 
@@ -161,7 +161,7 @@ export function useSocket({ serverUrl, roomId, isHost }: SocketProps) {
       }) => {
         setMusicRecord({
           name: track,
-          cover: `http://localhost:8000/static/covers/${encodeURIComponent(track)}.png`,
+          cover: `${serverUrl}/static/covers/${encodeURIComponent(track)}.png`,
           duration: duration,
         });
         setSeekTime(progress);

@@ -100,20 +100,6 @@ export default function Agora({ roomId }: { roomId: string }) {
     });
   };
 
-  const leaveRoom = async (notPush?: boolean) => {
-    if (!audioTrackRef.current.localTrack) return;
-    if (!rtcClientRef.current) return;
-
-    audioTrackRef.current.localTrack.stop();
-    audioTrackRef.current.localTrack.close();
-
-    rtcClientRef.current.unpublish();
-    rtcClientRef.current.leave();
-
-    // socket?.disconnect();
-    // console.log("leave panic tako", socket);
-    if (!notPush) router.push("/player");
-  };
 
   useEffect(() => {
     if (!hasRunRef.current) {
